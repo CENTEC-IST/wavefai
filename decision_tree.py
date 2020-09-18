@@ -142,7 +142,7 @@ l=len(buoy0)
 # In[10]:
 
 
-#errors for wave
+#errors for wave in nowcast
 buoy0=buoy0.drop(buoy0.loc[buoy0['WVHT']==99].index)
 error=[]
 for i in range(0,len(df2df3a)):
@@ -154,34 +154,66 @@ for i in range(0,len(df2df3a)):
 # In[11]:
 
 
+#Dataframe with errors associated to Hs prediction
 errorHs=df2df3a.iloc[:,1]
 errorHs=pd.DataFrame(errorHs)
 errorHs['errorHS']=error
 errorHs['out']=df2df3a.iloc[:,12]
-
-
-# In[12]:
-
-
 nan=np.where(np.isnan(errorHs.iloc[:,1]))
-nan
+ind = list(OrderedDict.fromkeys(nan[0])) 
+errorHs=errorHs.drop(errorHs.index[ind])
 
 
-# In[13]:
+# In[51]:
 
 
-errorHs
+#behavior of Hs depending on model
+plotdf=df2df3a[[df2df3a.columns[1],df2df3a.columns[12]]]
+plotdf=plotdf.reset_index()
+
+w=plotdf.loc[plotdf['out'] == 'WW3_N']
+plt.scatter(w.iloc[:,0],w.iloc[:,1],c='green',s=10,label='WW3_N')
+g=plotdf.loc[plotdf['out'] == 'GWES_N']
+plt.scatter(g.iloc[:,0],g.iloc[:,1],c='blue',s=10,label='GWES_N')
+plt.legend()
+plt.xlabel('dates')
+plt.ylabel('Hs')
+plt.show()
 
 
-# In[84]:
+# In[67]:
 
 
-np.where( abs(buoy0.index - df2df3a.index[181]).total_seconds() <= 2400) 
+#plot wave period values of both buoy and models to see if they coincide and whether there are outliers or not
+d0t=df2df3a[[df2df3a.columns[2],df2df3a.columns[12]]]
+d0t=d0t.reset_index()
+
+plt.scatter(d0t.iloc[:,0],d0t.iloc[:,1],s=10)
+w=d0t.loc[d0t['out'] == 'WW3_N']
+plt.scatter(w.iloc[:,0],w.iloc[:,1],c='green',s=10,label='WW3_N')
+g=d0t.loc[d0t['out'] == 'GWES_N']
+plt.scatter(g.iloc[:,0],g.iloc[:,1],c='blue',s=10,label='GWES_N')
+plt.legend()
+plt.xlabel('date')
+plt.ylabel('Tp')
+plt.show()
 
 
-# In[29]:
+# In[56]:
 
 
+b0d=buoy0['DPD'].reset_index()
+plt.scatter(b0d.iloc[:,0],b0d.iloc[:,1],s=10)
+
+plt.xlabel('date')
+plt.ylabel('DPD')
+plt.show()
+
+
+# In[70]:
+
+
+#plot of errors of each model for Hs
 plote=errorHs[[errorHs.columns[1],errorHs.columns[2]]]
 plote=plote.reset_index()
 
@@ -194,40 +226,13 @@ plt.xlabel('dates')
 plt.ylabel('errorHS')
      
 plt.show()
-
-
-# In[37]:
-
-
 print(np.mean(w.iloc[:,1]),np.mean(g.iloc[:,1]))
-
-
-# In[107]:
-
-
-#Decision tree dataset all features
-X=df2df3a.iloc[:,0:12]
-y=df2df3a.iloc[:,12]
- #features
-
-#Choose best decision tree model 
-param_grid = {"criterion": ["gini", "entropy"],
-              "min_samples_split": [2, 10, 20],
-              "max_depth": [None, 2, 5, 10],
-              "min_samples_leaf": [1, 5, 10],
-              "max_leaf_nodes": [None, 5, 10, 20],
-              }
-clf = DecisionTreeClassifier(random_state=1)
-clf = GridSearchCV(clf, param_grid, n_jobs=4,cv=10)
-clf.fit(X=X, y=y)
-tree_model = clf.best_estimator_
-#print (clf.best_score_, clf.best_params_) 
 
 
 # In[2]:
 
 
-#focusing on wave height:
+#decision tree focusing on wave height:
 
 X=df2df3a.iloc[:,1]
 X=X.values.reshape(-1,1)#because it's 1D
@@ -247,17 +252,10 @@ clf.fit(X=X, y=y)
 tree_model = clf.best_estimator_
 
 
-#y_pred=tree_model.predict(buoy0)
-
-
 # In[14]:
 
 
 #decisiontree of hs and error associated 
-
-nan=np.where(np.isnan(errorHs.iloc[:,1]))
-ind = list(OrderedDict.fromkeys(nan[0])) 
-errorHs=errorHs.drop(errorHs.index[ind])
 
 X=errorHs[['Hs','errorHS']]
 
@@ -276,12 +274,12 @@ clf = DecisionTreeClassifier(random_state=1)
 clf = GridSearchCV(clf, param_grid, n_jobs=4,cv=10)
 clf.fit(X=X, y=y)
 tree_model = clf.best_estimator_
-#print (clf.best_score_, clf.best_params_) 
 
 
-# In[ ]:
+# In[71]:
 
 
+#predicted model for each hs value with errors =0
 b0p=buoy0['WVHT']
 b0p=b0p.drop(b0p.loc[b0p==99].index)
 b0p = pd.DataFrame(b0p)
@@ -302,27 +300,6 @@ plt.ylabel('Hs')
 plt.show()
 
 
-# In[ ]:
-
-
-X=df2df3a.iloc[:,1]
-X=X.values.reshape(-1,1)#because it's 1D
-y=df2df3a.iloc[:,12]
-
-
-#Choose best decision tree model 
-param_grid = {"criterion": ["gini", "entropy"],
-              "min_samples_split": [2, 10, 20],
-              "max_depth": [None, 2, 5, 10],
-              "min_samples_leaf": [1, 5, 10],
-              "max_leaf_nodes": [None, 5, 10, 20],
-              }
-clf = DecisionTreeClassifier(random_state=1)
-clf = GridSearchCV(clf, param_grid, n_jobs=4,cv=10)
-clf.fit(X=X, y=y)
-tree_model = clf.best_estimator_
-
-
 # In[38]:
 
 
@@ -335,7 +312,7 @@ graph = pydotplus.graph_from_dot_data(dot_data.getvalue())
 Image(graph.create_png())
 
 
-# In[47]:
+# In[72]:
 
 
 # empty all nodes, i.e.set color to white and number of samples to zero
@@ -375,12 +352,6 @@ Image(graph.create_png())
 clf.best_params_
 
 
-# In[48]:
-
-
-
-
-
 # In[126]:
 
 
@@ -407,23 +378,6 @@ def tree_to_code(tree, feature_names):
     recurse(0, 1)
     
 tree_to_code(tree_model,names)
-
-
-# In[51]:
-
-
-
-plotdf=df2df3a[[df2df3a.columns[1],df2df3a.columns[12]]]
-plotdf=plotdf.reset_index()
-
-w=plotdf.loc[plotdf['out'] == 'WW3_N']
-plt.scatter(w.iloc[:,0],w.iloc[:,1],c='green',s=10,label='WW3_N')
-g=plotdf.loc[plotdf['out'] == 'GWES_N']
-plt.scatter(g.iloc[:,0],g.iloc[:,1],c='blue',s=10,label='GWES_N')
-plt.legend()
-plt.xlabel('dates')
-plt.ylabel('Hs')
-plt.show()
 
 
 # In[44]:
@@ -465,5 +419,5 @@ b0p.pivot_table(index=['y_pred'], aggfunc='size')
 # In[ ]:
 
 
-
+#chiclet chart of Hs prediction depending on ft
 
