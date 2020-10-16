@@ -9,7 +9,6 @@ import matplotlib.ticker
 from matplotlib.dates import DateFormatter
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from mpl_toolkits.basemap import cm
-colormap = cm.GMT_polar
 palette = plt.cm.jet
 palette.set_bad('aqua', 10.0)
 import pickle
@@ -118,7 +117,7 @@ def metrics(*args):
 		ferr[4] = ( (ferr[1]**2) - (ferr[0]**2) )**0.5
 	ferr[5] = ( (((model-model.mean())-(obs-obs.mean()))**2).sum() / (obs**2).sum() )**0.5  # Scatter Index
 	ferr[6] = ( ((model - obs)**2).sum() / (model * obs).sum() )**0.5  # HH
-	ferr[7]=np.corrcoef(model,obs)[0,1]  #  Correlation Coefficient 
+	ferr[7]=np.corrcoef(model,obs)[0,1]  #  Correlation Coefficient
 
 	return ferr
 
@@ -192,7 +191,7 @@ def errXftime(timeAhead,merr,ccol,mmark,llinst,Nvar,Nmetric,fpath,fid,sl):
 		ax1.plot(timeAhead/(3600.*24.),gaussian_filter(merr[i,:], 0.8), color=ccol[i], marker=mmark[i], linestyle=llinst[i], linewidth=1.)
 	# ensemble average (exclude control)
 	ax1.set_xlabel("Forecast Time (Days)",size=sl); ax1.set_ylabel(Nmetric+" "+Nvar,size=sl);
-	plt.tight_layout();plt.axis('tight') 
+	plt.tight_layout();plt.axis('tight')
 	ax1.set_xlim(left=0., right=(timeAhead/(3600.*24.)).max())
 	plt.locator_params(axis='y', nbins=7) ; plt.locator_params(axis='x', nbins=7)
 	plt.savefig(fpath+fid+Nmetric+'XFtime_'+Nvar+'.png', dpi=300, facecolor='w', edgecolor='w',orientation='portrait', papertype=None, format='png',transparent=False, bbox_inches='tight', pad_inches=0.1)
@@ -202,20 +201,20 @@ def errXftime(timeAhead,merr,ccol,mmark,llinst,Nvar,Nmetric,fpath,fid,sl):
 def errXpercentile(nvepe,vepe,merr,ccol,mmark,llinst,Nvar,Nmetric,fpath,fid,sl):
 
 	ccol = np.atleast_1d(ccol) ; mmark = np.atleast_1d(mmark) ; llinst = np.atleast_1d(llinst)
-	vepe = np.atleast_2d(vepe) ; merr = np.atleast_2d(merr) ; 
+	vepe = np.atleast_2d(vepe) ; merr = np.atleast_2d(merr) ;
 
 	fig1 = plt.figure(1,figsize=(5,5)) ; ax11 = fig1.add_subplot(111)
 	plt.grid()
 	#if Nmetric=='Bias' or Nmetric=='NBias':
-	#	ax11.axhline(y=0, color='w') 
+	#	ax11.axhline(y=0, color='w')
 	for i in range(0,merr.shape[0]):
 		ax11.plot(nvepe,gaussian_filter(merr[i,:], 0.8), color=ccol[i], marker=mmark[i], linestyle=llinst[i], linewidth=1.)
 
-	plt.figure(1) 
-	ax11.set_xlabel('Quantiles of '+Nvar,size=sl); ax11.set_ylabel(Nmetric,size=sl) 
+	plt.figure(1)
+	ax11.set_xlabel('Quantiles of '+Nvar,size=sl); ax11.set_ylabel(Nmetric,size=sl)
 	plt.locator_params(axis='y', nbins=7) ; plt.locator_params(axis='x', nbins=7)
-	plt.savefig(fpath+fid+Nmetric+'Xpercentile_'+Nvar+'.png', dpi=300, facecolor='w', edgecolor='w',orientation='portrait', papertype=None, format='png',transparent=False, bbox_inches='tight', pad_inches=0.1) 
-	plt.close(fig1) 
+	plt.savefig(fpath+fid+Nmetric+'Xpercentile_'+Nvar+'.png', dpi=300, facecolor='w', edgecolor='w',orientation='portrait', papertype=None, format='png',transparent=False, bbox_inches='tight', pad_inches=0.1)
+	plt.close(fig1)
 
 # Contourf of Error X forecast time X time
 def cerrXftimetime(dates,timeAhead,merr,palt,Nvar,Nmetric,fpath,fid,sl):
@@ -307,9 +306,9 @@ def eqqplot(obs,model,ccol,mmark,llinst,Nvar,fpath,fid,sl):
 
 	plt.ylim(ymax = aux.max(), ymin = aux.min())
 	plt.xlim(xmax = aux.max(), xmin = aux.min())
-	plt.locator_params(axis='y', nbins=7) ; plt.locator_params(axis='x', nbins=7) 
+	plt.locator_params(axis='y', nbins=7) ; plt.locator_params(axis='x', nbins=7)
 	ax1.set_xlabel("Observation "+Nvar,size=sl); ax1.set_ylabel("Model "+Nvar,size=sl);
-	plt.tight_layout(); # plt.axis('tight') 
+	plt.tight_layout(); # plt.axis('tight')
 	plt.grid(c='k', ls='-', alpha=0.3)
 	plt.savefig(fpath+fid+'QQplot_'+Nvar+'.png', dpi=300, facecolor='w', edgecolor='w',orientation='portrait', papertype=None, format='png',transparent=False, bbox_inches='tight', pad_inches=0.1)
 	plt.close(fig1)
@@ -335,7 +334,7 @@ def epdf(obs,model,ccol,mmark,llinst,Nvar,fpath,fid,sl):
 		del de
 
 	ax.set_xlabel(Nvar,size=sl); ax.set_ylabel("Probability Density",size=sl);
-	plt.tight_layout();plt.axis('tight') 
+	plt.tight_layout();plt.axis('tight')
 	plt.grid(c='k', ls='-', alpha=0.3)
 	plt.savefig(fpath+fid+'PDF_'+Nvar+'.png', dpi=300, facecolor='w', edgecolor='w',orientation='portrait', papertype=None, format='png',transparent=False, bbox_inches='tight', pad_inches=0.1)
 	plt.close(fig1)
@@ -379,7 +378,7 @@ def errXlat(lat,merr,ccol,mmark,llinst,Nvar,Nmetric,fpath,fid,sl,latick):
 		ax1.plot(lat,gaussian_filter(merr[i,:], 0.8), color=ccol[i], marker=mmark[i], linestyle=llinst[i], linewidth=0.5)
 
 	ax1.set_xlabel("Latitude",size=sl); ax1.set_ylabel(Nmetric+" "+Nvar,size=sl);
-	plt.tight_layout();plt.axis('tight') 
+	plt.tight_layout();plt.axis('tight')
 	ax1.set_xlim(left=np.nanmin(lat), right=np.nanmax(lat))
 	plt.grid(c='k', ls='-', alpha=0.3)
 	plt.xticks(latick)
