@@ -51,9 +51,9 @@ for i in ssp:
 	chicklet_plot(img_name, auxmsprd, datm, eft, lev2, extend='max')
 	# Differences
 	img_name = 'ChicletChart_DiffModelEMObs_'+stations[i]+'_'+Nvar+'XFtimeXTime.png'
-	chicklet_plot(img_name, auxm - auxo, datm, eft, lev3, cmap=plt.cm.RdBu_r)
+	chicklet_plot(img_name, auxm - auxo, datm, eft, lev3, color_palette=plt.cm.RdBu_r)
 	img_name = 'ChicletChart_DiffModelm1Obs_'+stations[i]+'_'+Nvar+'XFtimeXTime.png'
-	chicklet_plot(img_name, auxm2 - auxo, datm, eft, lev3, cmap=plt.cm.RdBu_r)
+	chicklet_plot(img_name, auxm2 - auxo, datm, eft, lev3, color_palette=plt.cm.RdBu_r)
 
 # Temperature
 Nvar = Nvaren[1]
@@ -79,9 +79,9 @@ for i in ssp:
 	chicklet_plot(img_name, auxmsprd, datm, eft, lev2, extend='max')
 	# Differences
 	img_name = 'ChicletChart_DiffModelEMObs_'+stations[i]+'_'+Nvar+'XFtimeXTime.png'
-	chicklet_plot(img_name, auxm - auxo, datm, eft, lev3, cmap=plt.cm.RdBu_r)
+	chicklet_plot(img_name, auxm - auxo, datm, eft, lev3, color_palette=plt.cm.RdBu_r)
 	img_name = 'ChicletChart_DiffModelm1Obs_'+stations[i]+'_'+Nvar+'XFtimeXTime.png'
-	chicklet_plot(img_name, auxm2 - auxo, datm, eft, lev3, cmap=plt.cm.RdBu_r)
+	chicklet_plot(img_name, auxm2 - auxo, datm, eft, lev3, color_palette=plt.cm.RdBu_r)
 
 # Humidade
 Nvar = Nvaren[2]
@@ -107,9 +107,9 @@ for i in ssp:
 	chicklet_plot(img_name, auxmsprd, datm, eft, lev2, extend='max')
 	# Differences
 	img_name = 'ChicletChart_DiffModelEMObs_'+stations[i]+'_'+Nvar+'XFtimeXTime.png'
-	chicklet_plot(img_name, auxm - auxo, datm, eft, lev3, cmap=plt.cm.RdBu_r)
+	chicklet_plot(img_name, auxm - auxo, datm, eft, lev3, color_palette=plt.cm.RdBu_r)
 	img_name = 'ChicletChart_DiffModelm1Obs_'+stations[i]+'_'+Nvar+'XFtimeXTime.png'
-	chicklet_plot(img_name, auxm2 - auxo, datm, eft, lev3, cmap=plt.cm.RdBu_r)
+	chicklet_plot(img_name, auxm2 - auxo, datm, eft, lev3, color_palette=plt.cm.RdBu_r)
 
 # Wind Speed
 Nvar = Nvaren[3]+NvarAnh[0]
@@ -135,7 +135,7 @@ for i in ssp:
 	chicklet_plot(img_name, auxmsprd, datm, eft, lev2, extend='max')
 	# Differences
 	img_name = 'ChicletChart_DiffModelEMObs_'+stations[i]+'_'+Nvar+'XFtimeXTime.png'
-	chicklet_plot(img_name, auxm - auxo, datm, eft, lev3, cmap=plt.cm.RdBu_r)
+	chicklet_plot(img_name, auxm - auxo, datm, eft, lev3, color_palette=plt.cm.RdBu_r)
 	img_name = 'ChicletChart_DiffModelm1Obs_'+stations[i]+'_'+Nvar+'XFtimeXTime.png'
-	chicklet_plot(img_name, auxm2 - auxo, datm, eft, lev3, cmap=plt.cm.RdBu_r)
+	chicklet_plot(img_name, auxm2 - auxo, datm, eft, lev3, color_palette=plt.cm.RdBu_r)
 

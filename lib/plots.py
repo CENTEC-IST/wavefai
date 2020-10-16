@@ -18,7 +18,7 @@ matplotlib.use('Agg')
 # plt.ioff()
 
 DEFAULT_PALETTE = plt.cm.jet
-DEFAULT_PALETTE.set_bad('aqua', 10.0)
+# DEFAULT_PALETTE.set_bad('aqua', 10.0) # XXX Was used in merr.py
 
 def chicklet_plot(img_name, data, date_time, forecast_time, lev, color_palette=DEFAULT_PALETTE, extend="both", sl=SL):
 	fig, ax1 = plt.subplots(1,figsize=(16,4), sharex=True, sharey=True)
