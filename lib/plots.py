@@ -7,11 +7,12 @@ from pylab import DateFormatter
 
 SL = 13
 
-matplotlib.rcParams.update({'font.size': SL})
 plt.rc('font', size=SL)
 matplotlib.rc('xtick', labelsize=SL)
 matplotlib.rc('ytick', labelsize=SL)
 matplotlib.rcParams.update({'font.size': SL})
+# matplotlib.use('Agg')
+plt.ioff()
 
 def chicklet_plot(img_name, data, date_time, forecast_time, lev, cmap=plt.cm.jet, extend="both"):
 	fig, ax1 = plt.subplots(1,figsize=(16,4), sharex=True, sharey=True)

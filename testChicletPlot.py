@@ -9,11 +9,7 @@ from lib.plots import chicklet_plot
 
 f=nc.Dataset('ECMWFifs_and_Obsv_StationPos_2017111300_2020082300.nc')
 datm=f.variables['date_time'][:]
-et=f.variables['cycletime'][:]
 eft=f.variables['forecast_time'][:]
-ensm=f.variables['ensmember'][:]
-blat=f.variables['latitude'][:]
-blon=f.variables['longitude'][:]
 stations=f.variables['stationID'][:]
 eatmp=f.variables['ecmwf_atmp'][:,:,:,:]
 oatmp=f.variables['omega_atmp'][:,:,:]
@@ -23,14 +19,6 @@ emsl=f.variables['ecmwf_msl'][:,:,:,:]
 omsl=f.variables['omega_msl'][:,:,:]
 ewspa=f.variables['ecmwf_wsp_AnemAinfer'][:,:,:,:]
 owspa=f.variables['omega_wsp_AnemAinfer'][:,:,:]
-ewdira=f.variables['ecmwf_wdir_AnemAinfer'][:,:,:,:]
-owdira=f.variables['omega_wdir_AnemAinfer'][:,:,:]
-ewspb=f.variables['ecmwf_wsp_AnemB'][:,:,:,:]
-owspb=f.variables['omega_wsp_AnemB'][:,:,:]
-ewspc=f.variables['ecmwf_wsp_AnemCsup'][:,:,:,:]
-owspc=f.variables['omega_wsp_AnemCsup'][:,:,:]
-ewdirc=f.variables['ecmwf_wdir_AnemCsup'][:,:,:,:]
-owdirc=f.variables['omega_wdir_AnemCsup'][:,:,:]
 f.close()
 
 # Sellection of stations to plot
