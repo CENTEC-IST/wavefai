@@ -15,7 +15,6 @@ matplotlib.rc('xtick', labelsize=SL)
 matplotlib.rc('ytick', labelsize=SL)
 matplotlib.rcParams.update({'font.size': SL})
 matplotlib.use('Agg')
-# plt.ioff()
 
 DEFAULT_PALETTE = plt.cm.jet
 # DEFAULT_PALETTE.set_bad('aqua', 10.0) # XXX Was used in merr.py
@@ -105,19 +104,19 @@ def errXftimeXQuantile(img_name, meval, nvepe, timeAhead, Nvar, Nmetric, sl=SL, 
 	fig,ax1 = plt.subplots(figsize=(6,5))
 	if Nmetric=='Bias' or Nmetric=='NBias':
 		if not lev:
-			lev=np.linspace(-np.nanpercentile(np.abs(meval[meval[:,:]>-999.]),99.9),np.nanpercentile(np.abs(meval[meval[:,:]>-999.]),99.9),100)
+			lev=np.linspace(-np.nanpercentile(np.abs(meval[meval[:,:]> -999.]),99.9),np.nanpercentile(np.abs(meval[meval[:,:]> -999.]),99.9),100)
 
 		palette = plt.cm.RdBu_r
 		im2 = ax1.contourf(nvepe, (timeAhead/(3600*24)),meval,lev,cmap=palette,extend="both")
 	elif Nmetric=='CC':
 		if not lev:
-			lev=np.linspace(np.nanmin(meval[meval[:,:]>-999.]),1.,100)
+			lev=np.linspace(np.nanmin(meval[meval[:,:]> -999.]),1.,100)
 
 		palette = plt.cm.gist_stern
 		im2 = ax1.contourf(nvepe, (timeAhead/(3600*24)),meval,lev,cmap=palette,extend="min")
 	else:
 		if not lev:
-			lev=np.linspace(np.nanmin(meval[meval[:,:]>-999.]),np.nanpercentile(meval[meval[:,:]>-999.],99.9),100)
+			lev=np.linspace(np.nanmin(meval[meval[:,:]> -999.]),np.nanpercentile(meval[meval[:,:]> -999.],99.9),100)
 
 		palette = plt.cm.gist_stern_r
 		im2 = ax1.contourf(nvepe, (timeAhead/(3600*24)),meval,lev,cmap=palette,extend="max")

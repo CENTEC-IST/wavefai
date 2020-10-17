@@ -9,6 +9,8 @@ def metrics(*args):
 		bias, RMSE, NBias, NRMSE, SCrmse, SI, HH, CC
 	'''
 
+	# TODO remove copy
+	# TODO remove argument list
 	vmin=-np.inf; vmax=np.inf; maxdiff=np.inf
 	if len(args) < 2:
 		sys.exit(' Need two arrays with model and observations.')
