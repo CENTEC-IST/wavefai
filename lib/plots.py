@@ -1,9 +1,11 @@
+import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 from matplotlib import ticker
 from mpl_toolkits.axes_grid1 import make_axes_locatable
-from pylab import DateFormatter
+from pylab import DateFormatter, date2num
+from datetime import datetime
 
 from scipy.ndimage.filters import gaussian_filter
 from scipy.stats import gaussian_kde
@@ -36,6 +38,54 @@ def chicklet_plot(img_name, data, date_time, forecast_time, lev, color_palette=D
 	fig.text(0.000, 0.53, 'Forecast Time (Days)', va='center', rotation='vertical',size=sl)
 	plt.savefig(img_name, dpi=300, facecolor='w', edgecolor='w',orientation='portrait', papertype=None, format='png',transparent=False, bbox_inches='tight', pad_inches=0.1)
 	plt.close(fig)
+
+
+
+def time_series_plot(img_name, observation_data, ensemble_members, cycle_time, forecast_time, variable_name = None, text=None, sl=SL):
+	'''This function generates a plot for .. TODO
+	Parameters:
+		img_name -- name of the output image file, should include the extension (png)
+		observation_data -- 1D array containing the observed data along the forecast time
+		ensemble_members -- 2D array containing each ensembler data along the forecast time
+		cycle_time -- timestamp of the specific day to plot
+		forecast_time -- forecast timestamps
+	'''
+
+	n_ensemblers = ensemble_members.shape[0]
+	pred_time = np.asarray([date2num(datetime.fromtimestamp(cycle_time + forecast_time[j])) for j in range(forecast_time.shape[0])])
+
+	fig, ax1 = plt.subplots(1,figsize=(16,4), sharex=True, sharey=True)
+
+	# Observation
+	ax1.plot(pred_time,gaussian_filter(observation_data,1.),color='k',label='OBS',linewidth=2.,zorder=2)
+	# Ensemble Mean
+	ax1.plot(pred_time,gaussian_filter(np.nanmean(ensemble_members, axis=0), 1.),color='brown',label='ECMWF_EM',linewidth=3.,zorder=3)
+	# Ensemble members
+	for j in range(n_ensemblers):
+		ax1.plot(pred_time, gaussian_filter(ensemble_members[j,:],1.),color='lightsalmon',linewidth=0.5,zorder=1)
+
+	plt.legend(loc='upper left')
+	plt.xlabel("Time (day/month)",size=sl)
+	if variable_name:
+		plt.ylabel(variable_name,size=sl)
+	ax1.xaxis.set_major_locator(mdates.DayLocator(interval=5))
+	ax1.xaxis.set_major_formatter( DateFormatter('%d/%m') )
+	if text:
+		fig.text(0.015,0.05, text, va='center', rotation='horizontal',size=sl)
+	plt.grid()
+	plt.tight_layout()
+	plt.axis('tight')
+	plt.xlim(xmin=pred_time[0]-0.1,xmax=pred_time[-1]+0.1)
+	plt.savefig(img_name, dpi=300, facecolor='w', edgecolor='w',orientation='portrait', papertype=None, format='png',transparent=False, bbox_inches='tight', pad_inches=0.1)
+	plt.close(fig)
+
+
+
+
+
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+# TODO test the code bellow
 
 # Error X Forecast time
 def errXftime(img_name, timeAhead, merr, ccol, mmark, llinst, Nvar, Nmetric, sl=SL):
