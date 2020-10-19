@@ -22,6 +22,7 @@ from bokeh.plotting import figure, output_file, show
 from pylab import date2num, DateFormatter
 import merr
 sl=13
+
 matplotlib.rcParams.update({'font.size': sl}); plt.rc('font', size=sl)
 matplotlib.rc('xtick', labelsize=sl); matplotlib.rc('ytick', labelsize=sl); matplotlib.rcParams.update({'font.size': sl})
 
@@ -166,90 +167,90 @@ for indi in range(i1,i2+1):
 
 # Error versus Forecast time
 
-# hd = '      Bias             RMSE          N-Bias          N-RMSE          SCrmse            SI              HH              CC'
-# hd2 = ' Lines: ECMWFensembleMean: PressaoAtmos,Temperatura,Umidade,VelVenMedAnemA,DirVenMedAnemA,VelVenMedAnemB,VelVenMedAnemC,DirVenMedAnemA,'
-# hd3 = ' Lines: ECMWF(DailyMean)ensembleMean: PressaoAtmos,Temperatura,Umidade,VelVenMedAnemA,DirVenMedAnemA,VelVenMedAnemB,VelVenMedAnemC,DirVenMedAnemA,'
-# terrem=np.zeros((8,stations.shape[0],8,eft.shape[0]),'f')*np.nan # array for error metrics, ensemble mean
-# terrms=np.zeros((8,stations.shape[0],8,ensm.shape[0],eft.shape[0]),'f')*np.nan # array for error metrics, all members
-# terremd=np.zeros((8,stations.shape[0],8,eft.shape[0]),'f')*np.nan # array for error metrics, ensemble mean from daily mean
-# # loop through forecast lead time
-# for d in range(0,eft.shape[0]):
+hd = '      Bias             RMSE          N-Bias          N-RMSE          SCrmse            SI              HH              CC'
+hd2 = ' Lines: ECMWFensembleMean: PressaoAtmos,Temperatura,Umidade,VelVenMedAnemA,DirVenMedAnemA,VelVenMedAnemB,VelVenMedAnemC,DirVenMedAnemA,'
+hd3 = ' Lines: ECMWF(DailyMean)ensembleMean: PressaoAtmos,Temperatura,Umidade,VelVenMedAnemA,DirVenMedAnemA,VelVenMedAnemB,VelVenMedAnemC,DirVenMedAnemA,'
+terrem=np.zeros((8,stations.shape[0],8,eft.shape[0]),'f')*np.nan # array for error metrics, ensemble mean
+terrms=np.zeros((8,stations.shape[0],8,ensm.shape[0],eft.shape[0]),'f')*np.nan # array for error metrics, all members
+terremd=np.zeros((8,stations.shape[0],8,eft.shape[0]),'f')*np.nan # array for error metrics, ensemble mean from daily mean
+# loop through forecast lead time
+for d in range(0,eft.shape[0]):
 
-# 	ind = np.where((eft>=(d*24*3600)) & (eft<((d+1)*24*3600)))[0]
+	ind = np.where((eft>=(d*24*3600)) & (eft<((d+1)*24*3600)))[0]
 
-# 	for i in range(0,stations.shape[0]):
+	for i in range(0,stations.shape[0]):
 
-# 		a=np.array(np.nanmean(emsl[i,:,:,:],axis=0))[:,ind]; b=omsl[i,:,ind].T; inde=np.where(a*b> -999)
-# 		terrem[:,i,0,d] = merr.metrics(a[inde[0],inde[1]],b[inde[0],inde[1]]); del inde,a,b
-# 		a=np.array(np.nanmean(eatmp[i,:,:,:],axis=0))[:,ind]; b=oatmp[i,:,ind].T; inde=np.where(a*b> -999)
-# 		terrem[:,i,1,d] = merr.metrics(a[inde[0],inde[1]],b[inde[0],inde[1]]); del inde,a,b
-# 		a=np.array(np.nanmean(erh[i,:,:,:],axis=0))[:,ind]; b=orh[i,:,ind].T; inde=np.where(a*b> -999)
-# 		terrem[:,i,2,d] = merr.metrics(a[inde[0],inde[1]],b[inde[0],inde[1]]); del inde,a,b
-# 		a=np.array(np.nanmean(ewspa[i,:,:,:],axis=0))[:,ind]; b=owspa[i,:,ind].T; inde=np.where(a*b> -999)
-# 		terrem[:,i,3,d] = merr.metrics(a[inde[0],inde[1]],b[inde[0],inde[1]]); del inde,a,b
-# 		a=np.array(np.nanmean(ewdira[i,:,:,:],axis=0))[:,ind]; b=owdira[i,:,ind].T; inde=np.where(a*b> -999)
-# 		terrem[:,i,4,d] = merr.metrics(a[inde[0],inde[1]],b[inde[0],inde[1]]); del inde,a,b
-# 		a=np.array(np.nanmean(ewspb[i,:,:,:],axis=0))[:,ind]; b=owspb[i,:,ind].T; inde=np.where(a*b> -999)
-# 		terrem[:,i,5,d] = merr.metrics(a[inde[0],inde[1]],b[inde[0],inde[1]]); del inde,a,b
-# 		a=np.array(np.nanmean(ewspc[i,:,:,:],axis=0))[:,ind]; b=owspc[i,:,ind].T; inde=np.where(a*b> -999)
-# 		terrem[:,i,6,d] = merr.metrics(a[inde[0],inde[1]],b[inde[0],inde[1]]); del inde,a,b
-# 		a=np.array(np.nanmean(ewdirc[i,:,:,:],axis=0))[:,ind]; b=owdirc[i,:,ind].T; inde=np.where(a*b> -999)
-# 		terrem[:,i,7,d] = merr.metrics(a[inde[0],inde[1]],b[inde[0],inde[1]]); del inde,a,b
+		a=np.array(np.nanmean(emsl[i,:,:,:],axis=0))[:,ind]; b=omsl[i,:,ind].T; inde=np.where(a*b> -999)
+		terrem[:,i,0,d] = merr.metrics(a[inde[0],inde[1]],b[inde[0],inde[1]]); del inde,a,b
+		a=np.array(np.nanmean(eatmp[i,:,:,:],axis=0))[:,ind]; b=oatmp[i,:,ind].T; inde=np.where(a*b> -999)
+		terrem[:,i,1,d] = merr.metrics(a[inde[0],inde[1]],b[inde[0],inde[1]]); del inde,a,b
+		a=np.array(np.nanmean(erh[i,:,:,:],axis=0))[:,ind]; b=orh[i,:,ind].T; inde=np.where(a*b> -999)
+		terrem[:,i,2,d] = merr.metrics(a[inde[0],inde[1]],b[inde[0],inde[1]]); del inde,a,b
+		a=np.array(np.nanmean(ewspa[i,:,:,:],axis=0))[:,ind]; b=owspa[i,:,ind].T; inde=np.where(a*b> -999)
+		terrem[:,i,3,d] = merr.metrics(a[inde[0],inde[1]],b[inde[0],inde[1]]); del inde,a,b
+		a=np.array(np.nanmean(ewdira[i,:,:,:],axis=0))[:,ind]; b=owdira[i,:,ind].T; inde=np.where(a*b> -999)
+		terrem[:,i,4,d] = merr.metrics(a[inde[0],inde[1]],b[inde[0],inde[1]]); del inde,a,b
+		a=np.array(np.nanmean(ewspb[i,:,:,:],axis=0))[:,ind]; b=owspb[i,:,ind].T; inde=np.where(a*b> -999)
+		terrem[:,i,5,d] = merr.metrics(a[inde[0],inde[1]],b[inde[0],inde[1]]); del inde,a,b
+		a=np.array(np.nanmean(ewspc[i,:,:,:],axis=0))[:,ind]; b=owspc[i,:,ind].T; inde=np.where(a*b> -999)
+		terrem[:,i,6,d] = merr.metrics(a[inde[0],inde[1]],b[inde[0],inde[1]]); del inde,a,b
+		a=np.array(np.nanmean(ewdirc[i,:,:,:],axis=0))[:,ind]; b=owdirc[i,:,ind].T; inde=np.where(a*b> -999)
+		terrem[:,i,7,d] = merr.metrics(a[inde[0],inde[1]],b[inde[0],inde[1]]); del inde,a,b
 
-# 		for j in range(0,ensm.shape[0]):
+		for j in range(0,ensm.shape[0]):
 
-# 			a=emsl[i,j,:,ind]; b=omsl[i,:,ind]; inde=np.where(a*b> -999)
-# 			terrms[:,i,0,j,d] = merr.metrics(a[inde[0],inde[1]],b[inde[0],inde[1]]); del inde,a,b
-# 			a=eatmp[i,j,:,ind]; b=oatmp[i,:,ind]; inde=np.where(a*b> -999)
-# 			terrms[:,i,1,j,d] = merr.metrics(a[inde[0],inde[1]],b[inde[0],inde[1]]); del inde,a,b
-# 			a=erh[i,j,:,ind]; b=orh[i,:,ind]; inde=np.where(a*b> -999)
-# 			terrms[:,i,2,j,d] = merr.metrics(a[inde[0],inde[1]],b[inde[0],inde[1]]); del inde,a,b
-# 			a=ewspa[i,j,:,ind]; b=owspa[i,:,ind]; inde=np.where(a*b> -999)
-# 			terrms[:,i,3,j,d] = merr.metrics(a[inde[0],inde[1]],b[inde[0],inde[1]]); del inde,a,b
-# 			a=ewdira[i,j,:,ind]; b=owdira[i,:,ind]; inde=np.where(a*b> -999)
-# 			terrms[:,i,4,j,d] = merr.metrics(a[inde[0],inde[1]],b[inde[0],inde[1]]); del inde,a,b
-# 			a=ewspb[i,j,:,ind]; b=owspb[i,:,ind]; inde=np.where(a*b> -999)
-# 			terrms[:,i,5,j,d] = merr.metrics(a[inde[0],inde[1]],b[inde[0],inde[1]]); del inde,a,b
-# 			a=ewspc[i,j,:,ind]; b=owspc[i,:,ind]; inde=np.where(a*b> -999)
-# 			terrms[:,i,6,j,d] = merr.metrics(a[inde[0],inde[1]],b[inde[0],inde[1]]); del inde,a,b
-# 			a=ewdirc[i,j,:,ind]; b=owdirc[i,:,ind]; inde=np.where(a*b> -999)
-# 			terrms[:,i,7,j,d] = merr.metrics(a[inde[0],inde[1]],b[inde[0],inde[1]]); del inde,a,b
+			a=emsl[i,j,:,ind]; b=omsl[i,:,ind]; inde=np.where(a*b> -999)
+			terrms[:,i,0,j,d] = merr.metrics(a[inde[0],inde[1]],b[inde[0],inde[1]]); del inde,a,b
+			a=eatmp[i,j,:,ind]; b=oatmp[i,:,ind]; inde=np.where(a*b> -999)
+			terrms[:,i,1,j,d] = merr.metrics(a[inde[0],inde[1]],b[inde[0],inde[1]]); del inde,a,b
+			a=erh[i,j,:,ind]; b=orh[i,:,ind]; inde=np.where(a*b> -999)
+			terrms[:,i,2,j,d] = merr.metrics(a[inde[0],inde[1]],b[inde[0],inde[1]]); del inde,a,b
+			a=ewspa[i,j,:,ind]; b=owspa[i,:,ind]; inde=np.where(a*b> -999)
+			terrms[:,i,3,j,d] = merr.metrics(a[inde[0],inde[1]],b[inde[0],inde[1]]); del inde,a,b
+			a=ewdira[i,j,:,ind]; b=owdira[i,:,ind]; inde=np.where(a*b> -999)
+			terrms[:,i,4,j,d] = merr.metrics(a[inde[0],inde[1]],b[inde[0],inde[1]]); del inde,a,b
+			a=ewspb[i,j,:,ind]; b=owspb[i,:,ind]; inde=np.where(a*b> -999)
+			terrms[:,i,5,j,d] = merr.metrics(a[inde[0],inde[1]],b[inde[0],inde[1]]); del inde,a,b
+			a=ewspc[i,j,:,ind]; b=owspc[i,:,ind]; inde=np.where(a*b> -999)
+			terrms[:,i,6,j,d] = merr.metrics(a[inde[0],inde[1]],b[inde[0],inde[1]]); del inde,a,b
+			a=ewdirc[i,j,:,ind]; b=owdirc[i,:,ind]; inde=np.where(a*b> -999)
+			terrms[:,i,7,j,d] = merr.metrics(a[inde[0],inde[1]],b[inde[0],inde[1]]); del inde,a,b
 
-# 		# Daily Mean
-# 		# uniform_filter1d(gfs[ind],size=2),uniform_filter1d(obs[ind],size=2))
-# 		a=np.array(np.nanmean(emsl[i,:,:,d],axis=0)); b=omsl[i,:,d]; inde=np.where(a*b> -999)
-# 		terremd[:,i,0,d] = merr.metrics(a[inde],b[inde]); del inde,a,b
-# 		a=np.array(np.nanmean(eatmp[i,:,:,d],axis=0)); b=oatmp[i,:,d]; inde=np.where(a*b> -999)
-# 		terremd[:,i,1,d] = merr.metrics(a[inde],b[inde]); del inde,a,b
-# 		a=np.array(np.nanmean(erh[i,:,:,d],axis=0)); b=orh[i,:,d]; inde=np.where(a*b> -999)
-# 		terremd[:,i,2,d] = merr.metrics(a[inde],b[inde]); del inde,a,b
-# 		a=np.array(np.nanmean(ewspa[i,:,:,d],axis=0)); b=owspa[i,:,d]; inde=np.where(a*b> -999)
-# 		terremd[:,i,3,d] = merr.metrics(a[inde],b[inde]); del inde,a,b
-# 		a=np.array(np.nanmean(ewdira[i,:,:,d],axis=0)); b=owdira[i,:,d]; inde=np.where(a*b> -999)
-# 		terremd[:,i,4,d] = merr.metrics(a[inde],b[inde]); del inde,a,b
-# 		a=np.array(np.nanmean(ewspb[i,:,:,d],axis=0)); b=owspb[i,:,d]; inde=np.where(a*b> -999)
-# 		terremd[:,i,5,d] = merr.metrics(a[inde],b[inde]); del inde,a,b
-# 		a=np.array(np.nanmean(ewspc[i,:,:,d],axis=0)); b=owspc[i,:,d]; inde=np.where(a*b> -999)
-# 		terremd[:,i,6,d] = merr.metrics(a[inde],b[inde]); del inde,a,b
-# 		a=np.array(np.nanmean(ewdirc[i,:,:,d],axis=0)); b=owdirc[i,:,d]; inde=np.where(a*b> -999)
-# 		terremd[:,i,7,d] = merr.metrics(a[inde],b[inde]); del inde,a,b
+		# Daily Mean
+		# uniform_filter1d(gfs[ind],size=2),uniform_filter1d(obs[ind],size=2))
+		a=np.array(np.nanmean(emsl[i,:,:,d],axis=0)); b=omsl[i,:,d]; inde=np.where(a*b> -999)
+		terremd[:,i,0,d] = merr.metrics(a[inde],b[inde]); del inde,a,b
+		a=np.array(np.nanmean(eatmp[i,:,:,d],axis=0)); b=oatmp[i,:,d]; inde=np.where(a*b> -999)
+		terremd[:,i,1,d] = merr.metrics(a[inde],b[inde]); del inde,a,b
+		a=np.array(np.nanmean(erh[i,:,:,d],axis=0)); b=orh[i,:,d]; inde=np.where(a*b> -999)
+		terremd[:,i,2,d] = merr.metrics(a[inde],b[inde]); del inde,a,b
+		a=np.array(np.nanmean(ewspa[i,:,:,d],axis=0)); b=owspa[i,:,d]; inde=np.where(a*b> -999)
+		terremd[:,i,3,d] = merr.metrics(a[inde],b[inde]); del inde,a,b
+		a=np.array(np.nanmean(ewdira[i,:,:,d],axis=0)); b=owdira[i,:,d]; inde=np.where(a*b> -999)
+		terremd[:,i,4,d] = merr.metrics(a[inde],b[inde]); del inde,a,b
+		a=np.array(np.nanmean(ewspb[i,:,:,d],axis=0)); b=owspb[i,:,d]; inde=np.where(a*b> -999)
+		terremd[:,i,5,d] = merr.metrics(a[inde],b[inde]); del inde,a,b
+		a=np.array(np.nanmean(ewspc[i,:,:,d],axis=0)); b=owspc[i,:,d]; inde=np.where(a*b> -999)
+		terremd[:,i,6,d] = merr.metrics(a[inde],b[inde]); del inde,a,b
+		a=np.array(np.nanmean(ewdirc[i,:,:,d],axis=0)); b=owdirc[i,:,d]; inde=np.where(a*b> -999)
+		terremd[:,i,7,d] = merr.metrics(a[inde],b[inde]); del inde,a,b
 
-# 		# Table err metrics
-# 		fname = 'Table_ErrorECMWFemXForecastTime_'+stations[i]+'_D'+str(d+1).zfill(2)+'.txt'
-# 		ifile = open(fname,'w')
-# 		ifile.write('# '+hd2+' \n')
-# 		ifile.write('# '+hd+' \n')
-# 		np.savetxt(ifile,terrem[:,i,:,d].T,fmt="%12.3f",delimiter='	')
-# 		ifile.close(); del ifile, fname
+		# # Table err metrics
+		# fname = 'Table_ErrorECMWFemXForecastTime_'+stations[i]+'_D'+str(d+1).zfill(2)+'.txt'
+		# ifile = open(fname,'w')
+		# ifile.write('# '+hd2+' \n')
+		# ifile.write('# '+hd+' \n')
+		# np.savetxt(ifile,terrem[:,i,:,d].T,fmt="%12.3f",delimiter='	')
+		# ifile.close(); del ifile, fname
 
-# 		fname = 'Table_ErrorECMWFemDMXForecastTime_'+stations[i]+'_D'+str(d+1).zfill(2)+'.txt'
-# 		ifile = open(fname,'w')
-# 		ifile.write('# '+hd3+' \n')
-# 		ifile.write('# '+hd+' \n')
-# 		np.savetxt(ifile,terremd[:,i,:,d].T,fmt="%12.3f",delimiter='	')
-# 		ifile.close(); del ifile
+		# fname = 'Table_ErrorECMWFemDMXForecastTime_'+stations[i]+'_D'+str(d+1).zfill(2)+'.txt'
+		# ifile = open(fname,'w')
+		# ifile.write('# '+hd3+' \n')
+		# ifile.write('# '+hd+' \n')
+		# np.savetxt(ifile,terremd[:,i,:,d].T,fmt="%12.3f",delimiter='	')
+		# ifile.close(); del ifile
 
-# 	print('done day '+repr(d))
+	print('done day '+repr(d))
 
 
 # Plot err X forecast time das 16 estacoes com mais dados

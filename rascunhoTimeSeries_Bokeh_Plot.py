@@ -19,7 +19,6 @@ from scipy.ndimage.filters import gaussian_filter, uniform_filter1d
 from scipy.stats import gaussian_kde
 from xarray import open_dataset
 from calendar import timegm
-import merr
 fnetcdf="NETCDF4"
 sl=14
 matplotlib.rcParams.update({'font.size': sl}); plt.rc('font', size=sl) 

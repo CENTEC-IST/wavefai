@@ -42,7 +42,8 @@ def smrstat(*args):
 	if np.any(ind):
 		x=np.copy(x[ind[0]])
 	else:
-		sys.exit(' Array without valid numbers.')
+		print(' Array without valid numbers.')
+		return np.zeros((14),'f')*np.nan # TODO is this correct ?
 
 	ferr=np.zeros((14),'f')*np.nan
 	ferr[0] = np.mean(x)
@@ -104,7 +105,8 @@ def metrics(*args):
 	if np.any(ind) or model.shape[0]==1:
 		model=np.copy(model[ind[0]]); obs=np.copy(obs[ind[0]])
 	else:
-		sys.exit(' Array without valid numbers.')
+		print(' Array without valid numbers.')
+		return np.zeros((8),'f')*np.nan # TODO is this correct
 
 	ferr=np.zeros((8),'f')*np.nan
 	ferr[0] = model.mean()-obs.mean() # Bias
@@ -155,7 +157,8 @@ def imetrics(*args):
 
 	ind=np.where((np.isnan(model)==False) & (np.isnan(obs)==False) & (model>vmin) & (model<vmax) & (obs>vmin) & (obs<vmax))
 	if model.shape[0]>1 and np.any(ind)==False:
-		sys.exit(' Array without valid numbers.')
+		print(' Array without valid numbers.')
+		return np.zeros((model.shape[0],8),'f')*np.nan # TODO is this correct?
 
 	ferr=np.zeros((model.shape[0],8),'f')*np.nan
 	for i in range(0,model.shape[0]):

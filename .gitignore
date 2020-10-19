@@ -1,3 +1,4 @@
 *.nc
 *.png
 **/__pycache__
+test_output/*
