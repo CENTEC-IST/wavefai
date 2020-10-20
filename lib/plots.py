@@ -21,7 +21,18 @@ matplotlib.use('Agg')
 DEFAULT_PALETTE = plt.cm.jet
 # DEFAULT_PALETTE.set_bad('aqua', 10.0) # XXX Was used in merr.py
 
-def chicklet_plot(img_name, data, date_time, forecast_time, lev, color_palette=DEFAULT_PALETTE, extend="both", sl=SL):
+def chiclet_plot(img_name, data, date_time, forecast_time, lev,
+		color_palette=DEFAULT_PALETTE, extend="both", sl=SL, img_format='png'):
+	'''Chiclet plot function... TODO
+	Prameters:
+		img_name --
+		forecast_time -- forecast timestamps
+	Optional:
+		color_palette -- matplotlib.cm object representing color palette. Defaults to plt.cm.jet
+		extend -- TODO
+		sl -- text size
+		img_format -- file type to produce ('jpg' or 'png'). Defaults to 'png'
+	'''
 	fig, ax1 = plt.subplots(1,figsize=(16,4), sharex=True, sharey=True)
 	plt.xlabel("Time (month/year)",size=sl)
 	im1 = ax1.contourf(date_time,(forecast_time/3600.)/24., data, lev, cmap=color_palette, extend=extend)
@@ -36,19 +47,25 @@ def chicklet_plot(img_name, data, date_time, forecast_time, lev, color_palette=D
 	plt.tight_layout()
 	plt.axis('tight')
 	fig.text(0.000, 0.53, 'Forecast Time (Days)', va='center', rotation='vertical',size=sl)
-	plt.savefig(img_name, dpi=300, facecolor='w', edgecolor='w',orientation='portrait', papertype=None, format='png',transparent=False, bbox_inches='tight', pad_inches=0.1)
+	plt.savefig(img_name, dpi=300, facecolor='w', edgecolor='w',orientation='portrait', papertype=None, format=img_format,transparent=False, bbox_inches='tight', pad_inches=0.1)
 	plt.close(fig)
 
 
 
-def time_series_plot(img_name, observation_data, ensemble_members, cycle_time, forecast_time, variable_name = None, text=None, sl=SL):
+def time_series_plot(img_name, observation_data, ensemble_members, cycle_time, forecast_time,
+		variable_name = None, text=None, sl=SL, img_format='png'):
 	'''This function generates a plot for .. TODO
 	Parameters:
-		img_name -- name of the output image file, should include the extension (png)
+		img_name -- name of the output image file. The image format can be controlled with `img_format`
 		observation_data -- 1D array containing the observed data along the forecast time
 		ensemble_members -- 2D array containing each ensembler data along the forecast time
 		cycle_time -- timestamp of the specific day to plot
 		forecast_time -- forecast timestamps
+	Optional:
+		variable_name -- name to put in YY axis
+		text -- text to put at the bottom of the graph
+		sl -- text size
+		img_format -- file type to produce ('jpg' or 'png'). Defaults to 'png'
 	'''
 
 	n_ensemblers = ensemble_members.shape[0]
@@ -76,10 +93,8 @@ def time_series_plot(img_name, observation_data, ensemble_members, cycle_time, f
 	plt.tight_layout()
 	plt.axis('tight')
 	plt.xlim(xmin=pred_time[0]-0.1,xmax=pred_time[-1]+0.1)
-	plt.savefig(img_name, dpi=300, facecolor='w', edgecolor='w',orientation='portrait', papertype=None, format='png',transparent=False, bbox_inches='tight', pad_inches=0.1)
+	plt.savefig(img_name, dpi=300, facecolor='w', edgecolor='w',orientation='portrait', papertype=None, format=img_format,transparent=False, bbox_inches='tight', pad_inches=0.1)
 	plt.close(fig)
-
-
 
 
 

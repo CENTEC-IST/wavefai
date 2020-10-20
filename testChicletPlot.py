@@ -5,7 +5,7 @@ import netCDF4 as nc
 import numpy as np
 import matplotlib.pyplot as plt
 
-from lib.plots import chicklet_plot
+from lib.plots import chiclet_plot
 
 f=nc.Dataset('ECMWFifs_and_Obsv_StationPos_2017111300_2020082300.nc')
 datm=f.variables['date_time'][:]
@@ -39,21 +39,21 @@ for i in ssp:
 	auxmsprd=np.copy(np.std(emsl[i,:,:,:],axis=0).T)
 	# Observation
 	img_name = 'ChicletChart_Observation_'+stations[i]+'_'+Nvar+'XFtimeXTime.png'
-	chicklet_plot(img_name, auxo, datm, eft, lev)
+	chiclet_plot(img_name, auxo, datm, eft, lev)
 	# Ensemble Mean
 	img_name = 'ChicletChart_ModelEM_'+stations[i]+'_'+Nvar+'XFtimeXTime.png'
-	chicklet_plot(img_name, auxm, datm, eft, lev)
+	chiclet_plot(img_name, auxm, datm, eft, lev)
 	# First Ensemble Member
 	img_name = 'ChicletChart_Modelm1_'+stations[i]+'_'+Nvar+'XFtimeXTime.png'
-	chicklet_plot(img_name, auxm2, datm, eft, lev)
+	chiclet_plot(img_name, auxm2, datm, eft, lev)
 	# Spread
 	img_name = 'ChicletChart_ModelSpread_'+stations[i]+'_'+Nvar+'XFtimeXTime.png'
-	chicklet_plot(img_name, auxmsprd, datm, eft, lev2, extend='max')
+	chiclet_plot(img_name, auxmsprd, datm, eft, lev2, extend='max')
 	# Differences
 	img_name = 'ChicletChart_DiffModelEMObs_'+stations[i]+'_'+Nvar+'XFtimeXTime.png'
-	chicklet_plot(img_name, auxm - auxo, datm, eft, lev3, color_palette=plt.cm.RdBu_r)
+	chiclet_plot(img_name, auxm - auxo, datm, eft, lev3, color_palette=plt.cm.RdBu_r)
 	img_name = 'ChicletChart_DiffModelm1Obs_'+stations[i]+'_'+Nvar+'XFtimeXTime.png'
-	chicklet_plot(img_name, auxm2 - auxo, datm, eft, lev3, color_palette=plt.cm.RdBu_r)
+	chiclet_plot(img_name, auxm2 - auxo, datm, eft, lev3, color_palette=plt.cm.RdBu_r)
 
 # Temperature
 Nvar = Nvaren[1]
@@ -67,21 +67,21 @@ for i in ssp:
 	auxmsprd=np.copy(np.std(eatmp[i,:,:,:],axis=0).T)
 	# Observation
 	img_name = 'ChicletChart_Observation_'+stations[i]+'_'+Nvar+'XFtimeXTime.png'
-	chicklet_plot(img_name, auxo, datm, eft, lev)
+	chiclet_plot(img_name, auxo, datm, eft, lev)
 	# Ensemble Mean
 	img_name = 'ChicletChart_ModelEM_'+stations[i]+'_'+Nvar+'XFtimeXTime.png'
-	chicklet_plot(img_name, auxm, datm, eft, lev)
+	chiclet_plot(img_name, auxm, datm, eft, lev)
 	# First Ensemble Member
 	img_name = 'ChicletChart_Modelm1_'+stations[i]+'_'+Nvar+'XFtimeXTime.png'
-	chicklet_plot(img_name, auxm2, datm, eft, lev)
+	chiclet_plot(img_name, auxm2, datm, eft, lev)
 	# Spread
 	img_name = 'ChicletChart_ModelSpread_'+stations[i]+'_'+Nvar+'XFtimeXTime.png'
-	chicklet_plot(img_name, auxmsprd, datm, eft, lev2, extend='max')
+	chiclet_plot(img_name, auxmsprd, datm, eft, lev2, extend='max')
 	# Differences
 	img_name = 'ChicletChart_DiffModelEMObs_'+stations[i]+'_'+Nvar+'XFtimeXTime.png'
-	chicklet_plot(img_name, auxm - auxo, datm, eft, lev3, color_palette=plt.cm.RdBu_r)
+	chiclet_plot(img_name, auxm - auxo, datm, eft, lev3, color_palette=plt.cm.RdBu_r)
 	img_name = 'ChicletChart_DiffModelm1Obs_'+stations[i]+'_'+Nvar+'XFtimeXTime.png'
-	chicklet_plot(img_name, auxm2 - auxo, datm, eft, lev3, color_palette=plt.cm.RdBu_r)
+	chiclet_plot(img_name, auxm2 - auxo, datm, eft, lev3, color_palette=plt.cm.RdBu_r)
 
 # Humidade
 Nvar = Nvaren[2]
@@ -95,21 +95,21 @@ for i in ssp:
 	auxmsprd=np.copy(np.std(erh[i,:,:,:],axis=0).T)
 	# Observation
 	img_name = 'ChicletChart_Observation_'+stations[i]+'_'+Nvar+'XFtimeXTime.png'
-	chicklet_plot(img_name, auxo, datm, eft, lev, extend='min')
+	chiclet_plot(img_name, auxo, datm, eft, lev, extend='min')
 	# Ensemble Mean
 	img_name = 'ChicletChart_ModelEM_'+stations[i]+'_'+Nvar+'XFtimeXTime.png'
-	chicklet_plot(img_name, auxm, datm, eft, lev, extend='min')
+	chiclet_plot(img_name, auxm, datm, eft, lev, extend='min')
 	# First Ensemble Member
 	img_name = 'ChicletChart_Modelm1_'+stations[i]+'_'+Nvar+'XFtimeXTime.png'
-	chicklet_plot(img_name, auxm2, datm, eft, lev, extend='min')
+	chiclet_plot(img_name, auxm2, datm, eft, lev, extend='min')
 	# Spread
 	img_name = 'ChicletChart_ModelSpread_'+stations[i]+'_'+Nvar+'XFtimeXTime.png'
-	chicklet_plot(img_name, auxmsprd, datm, eft, lev2, extend='max')
+	chiclet_plot(img_name, auxmsprd, datm, eft, lev2, extend='max')
 	# Differences
 	img_name = 'ChicletChart_DiffModelEMObs_'+stations[i]+'_'+Nvar+'XFtimeXTime.png'
-	chicklet_plot(img_name, auxm - auxo, datm, eft, lev3, color_palette=plt.cm.RdBu_r)
+	chiclet_plot(img_name, auxm - auxo, datm, eft, lev3, color_palette=plt.cm.RdBu_r)
 	img_name = 'ChicletChart_DiffModelm1Obs_'+stations[i]+'_'+Nvar+'XFtimeXTime.png'
-	chicklet_plot(img_name, auxm2 - auxo, datm, eft, lev3, color_palette=plt.cm.RdBu_r)
+	chiclet_plot(img_name, auxm2 - auxo, datm, eft, lev3, color_palette=plt.cm.RdBu_r)
 
 # Wind Speed
 Nvar = Nvaren[3]+NvarAnh[0]
@@ -123,19 +123,19 @@ for i in ssp:
 	auxmsprd=np.copy(np.std(ewspa[i,:,:,:],axis=0).T)
 	# Observation
 	img_name = 'ChicletChart_Observation_'+stations[i]+'_'+Nvar+'XFtimeXTime.png'
-	chicklet_plot(img_name, auxo, datm, eft, lev, extend='max')
+	chiclet_plot(img_name, auxo, datm, eft, lev, extend='max')
 	# Ensemble Mean
 	img_name = 'ChicletChart_ModelEM_'+stations[i]+'_'+Nvar+'XFtimeXTime.png'
-	chicklet_plot(img_name, auxm, datm, eft, lev, extend='max')
+	chiclet_plot(img_name, auxm, datm, eft, lev, extend='max')
 	# First Ensemble Member
 	img_name = 'ChicletChart_Modelm1_'+stations[i]+'_'+Nvar+'XFtimeXTime.png'
-	chicklet_plot(img_name, auxm2, datm, eft, lev, extend='max')
+	chiclet_plot(img_name, auxm2, datm, eft, lev, extend='max')
 	# Spread
 	img_name = 'ChicletChart_ModelSpread_'+stations[i]+'_'+Nvar+'XFtimeXTime.png'
-	chicklet_plot(img_name, auxmsprd, datm, eft, lev2, extend='max')
+	chiclet_plot(img_name, auxmsprd, datm, eft, lev2, extend='max')
 	# Differences
 	img_name = 'ChicletChart_DiffModelEMObs_'+stations[i]+'_'+Nvar+'XFtimeXTime.png'
-	chicklet_plot(img_name, auxm - auxo, datm, eft, lev3, color_palette=plt.cm.RdBu_r)
+	chiclet_plot(img_name, auxm - auxo, datm, eft, lev3, color_palette=plt.cm.RdBu_r)
 	img_name = 'ChicletChart_DiffModelm1Obs_'+stations[i]+'_'+Nvar+'XFtimeXTime.png'
-	chicklet_plot(img_name, auxm2 - auxo, datm, eft, lev3, color_palette=plt.cm.RdBu_r)
+	chiclet_plot(img_name, auxm2 - auxo, datm, eft, lev3, color_palette=plt.cm.RdBu_r)
 

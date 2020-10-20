@@ -24,11 +24,10 @@ import merr
 
 from lib.plots import time_series_plot
 
-sl=13
 SL=13
 
-matplotlib.rcParams.update({'font.size': sl}); plt.rc('font', size=sl)
-matplotlib.rc('xtick', labelsize=sl); matplotlib.rc('ytick', labelsize=sl); matplotlib.rcParams.update({'font.size': sl})
+matplotlib.rcParams.update({'font.size': SL}); plt.rc('font', size=SL)
+matplotlib.rc('xtick', labelsize=SL); matplotlib.rc('ytick', labelsize=SL); matplotlib.rcParams.update({'font.size': SL})
 
 f=nc.Dataset('ECMWFifs_and_Obsv_StationPos_2017111300_2020082300.nc')
 datm=f.variables['date_time'][:]; et=f.variables['cycletime'][:]; eft=f.variables['forecast_time'][:]
@@ -41,119 +40,42 @@ ewdira=f.variables['ecmwf_wdir_AnemAinfer'][:,:,:,:]; owdira=f.variables['omega_
 ewspb=f.variables['ecmwf_wsp_AnemB'][:,:,:,:]; owspb=f.variables['omega_wsp_AnemB'][:,:,:]
 ewspc=f.variables['ecmwf_wsp_AnemCsup'][:,:,:,:]; owspc=f.variables['omega_wsp_AnemCsup'][:,:,:]
 ewdirc=f.variables['ecmwf_wdir_AnemCsup'][:,:,:,:]; owdirc=f.variables['omega_wdir_AnemCsup'][:,:,:]
-f.close(); del f
+f.close()
 # Sellection of stations to plot
-ssp=np.array([1,23]).astype('int')
 Nvarpt=['PressaoAtmos','Temperatura','Umidade','VelVenMed','DirVenMed']; NvarAnh=['AnemA','AnemB','AnemC']
 Nvaren=['AtmPressure','Temperature','RHumidity','WindSpeed','WindDir']
 
 
 # TIME SERIES PLOT ==========================
-fnames=['OBS','ECMWF_EM','ECMWF_m1']; scolors=['k','lightsalmon','brown']
 
 i=1 # Station 'ma_dt302_v'
 k=0 # Pressure k=0 Nvaren[k]
-indi=161 # initial time selected
-
-time_series_plot('TimeSeries.'+str(indi).zfill(3)+'_'+stations[i]+'_'+Nvaren[k]+'.png',
+i1=154; i2=223
+for indi in range(i1,i2+1):
+	sdatec=repr(time.gmtime(et[indi])[0])+str(time.gmtime(et[indi])[1]).zfill(2)+str(time.gmtime(et[indi])[2]).zfill(2)
+	time_series_plot('TimeSeries_'+str(indi).zfill(3)+'_'+stations[i]+'_'+Nvaren[k]+'.png',
 				omsl[i,indi,:],
 				emsl[i,:,indi,:],
 				et[indi], eft,
-				variable_name = Nvaren[k])
-
-sys.exit(0)
-
-# Loop
-i1=154; i2=223
-c=0
-for indi in range(i1,i2+1):
-	c=c+1
-	x=np.zeros(eft.shape[0],'f')*np.nan
-	for j in range(0,eft.shape[0]):
-		x[j]=date2num(datetime.fromtimestamp(et[indi]+eft[j]))
-
-	fig, ax1 = plt.subplots(1,figsize=(16,4), sharex=True, sharey=True)
-	# Observation
-	ax1.plot(x,gaussian_filter(omsl[i,indi,:],1.),color=scolors[0],label=fnames[0],linewidth=2.,zorder=2)
-	# Ensemble Mean
-	ax1.plot(x,gaussian_filter(np.nanmean(emsl[i,:,indi,:],axis=0),1.),color=scolors[2],label=fnames[1],linewidth=3.,zorder=3)
-	# Ensemble members
-	ax1.plot(x,gaussian_filter(emsl[i,0,indi,:],1.),color=scolors[1],label=fnames[2],linewidth=0.5,zorder=1)
-	for j in range(1,ensm.shape[0]):
-		ax1.plot(x,gaussian_filter(emsl[i,j,indi,:],1.),color=scolors[1],linewidth=0.5,zorder=1)
-
-	# plt.legend(loc='upper left')
-	plt.xlabel("Time (day/month)",size=sl)
-	plt.ylabel(Nvaren[k],size=sl)
-	ax1.xaxis.set_major_locator(mdates.DayLocator(interval=5)); ax1.xaxis.set_major_formatter( DateFormatter('%d/%m') )
-	sdatec=repr(time.gmtime(et[indi])[0])+str(time.gmtime(et[indi])[1]).zfill(2)+str(time.gmtime(et[indi])[2]).zfill(2)
-	fig.text(0.015,0.05,stations[i]+', cycle'+sdatec, va='center', rotation='horizontal',size=sl)
-	fig.text(0.96,0.05,str(c).zfill(3), va='center', rotation='horizontal',size=sl)
-	plt.grid(); plt.tight_layout();plt.axis('tight')
-	plt.ylim(ymin=np.nanmin(omsl[i,i1:i2+1,:]),ymax=np.nanmax(omsl[i,i1:i2+1,:])); plt.xlim(xmin=x[0]-0.1,xmax=x[-1]+0.1)
-	plt.savefig('TimeSeries_'+str(indi).zfill(3)+'_'+stations[i]+'_'+Nvaren[k]+'.png', dpi=100, facecolor='w', edgecolor='w',orientation='portrait', papertype=None, format='jpg',transparent=False, bbox_inches='tight', pad_inches=0.1)
-	plt.close(fig); del fig
+				variable_name = Nvaren[k],
+				text = stations[i]+', cycle'+sdatec + '  ' + str(indi - i1 + 1))
 
 # convert -delay 100 -loop 0 TimeSeries_*_ma_dt302_v_AtmPressure.png TimeSeries_ma_dt302_v_AtmPressure.gif
 
 k=3 # WindSpeed Nvaren[k]
 Nvar = Nvaren[k]+NvarAnh[2]
-indi=218
-x=np.zeros(eft.shape[0],'f')*np.nan
-for j in range(0,eft.shape[0]):
-	x[j]=date2num(datetime.fromtimestamp(et[indi]+eft[j]))
-
-fig, ax1 = plt.subplots(1,figsize=(16,4), sharex=True, sharey=True)
-# Observation
-ax1.plot(x,gaussian_filter(owspc[i,indi,:],1.),color=scolors[0],label=fnames[0],linewidth=2.,zorder=2)
-# Ensemble Mean
-ax1.plot(x,gaussian_filter(np.nanmean(ewspc[i,:,indi,:],axis=0),1.),color=scolors[2],label=fnames[1],linewidth=3.,zorder=3)
-# Ensemble members
-ax1.plot(x,gaussian_filter(ewspc[i,0,indi,:],1.),color=scolors[1],label=fnames[2],linewidth=0.5,zorder=1)
-for j in range(1,ensm.shape[0]):
-	ax1.plot(x,gaussian_filter(ewspc[i,j,indi,:],1.),color=scolors[1],linewidth=0.5,zorder=1)
-
-plt.legend(loc='upper left')
-plt.xlabel("Time (day/month)",size=sl)
-plt.ylabel(Nvaren[k],size=sl)
-ax1.xaxis.set_major_locator(mdates.DayLocator(interval=5)); ax1.xaxis.set_major_formatter( DateFormatter('%d/%m') )
-fig.text(0.015,0.05,stations[i], va='center', rotation='horizontal',size=sl)
-plt.grid(); plt.tight_layout();plt.axis('tight')
-plt.xlim(xmin=x[0]-0.1,xmax=x[-1]+0.1)
-plt.savefig('TimeSeries.'+str(indi).zfill(3)+'_'+stations[i]+'_'+Nvar+'.png', dpi=300, facecolor='w', edgecolor='w',orientation='portrait', papertype=None, format='png',transparent=False, bbox_inches='tight', pad_inches=0.1)
-plt.close(fig); del fig
-# Loop
-i1=154; i2=223
-c=0
 for indi in range(i1,i2+1):
-	c=c+1
-	x=np.zeros(eft.shape[0],'f')*np.nan
-	for j in range(0,eft.shape[0]):
-		x[j]=date2num(datetime.fromtimestamp(et[indi]+eft[j]))
-
-	fig, ax1 = plt.subplots(1,figsize=(16,4), sharex=True, sharey=True)
-	# Observation
-	ax1.plot(x,gaussian_filter(owspc[i,indi,:],1.),color=scolors[0],label=fnames[0],linewidth=2.,zorder=2)
-	# Ensemble Mean
-	ax1.plot(x,gaussian_filter(np.nanmean(ewspc[i,:,indi,:],axis=0),1.),color=scolors[2],label=fnames[1],linewidth=3.,zorder=3)
-	# Ensemble members
-	ax1.plot(x,gaussian_filter(ewspc[i,0,indi,:],1.),color=scolors[1],label=fnames[2],linewidth=0.5,zorder=1)
-	for j in range(1,ensm.shape[0]):
-		ax1.plot(x,gaussian_filter(ewspc[i,j,indi,:],1.),color=scolors[1],linewidth=0.5,zorder=1)
-
-	# plt.legend(loc='upper left')
-	plt.xlabel("Time (day/month)",size=sl)
-	plt.ylabel(Nvaren[k],size=sl)
-	ax1.xaxis.set_major_locator(mdates.DayLocator(interval=5)); ax1.xaxis.set_major_formatter( DateFormatter('%d/%m') )
 	sdatec=repr(time.gmtime(et[indi])[0])+str(time.gmtime(et[indi])[1]).zfill(2)+str(time.gmtime(et[indi])[2]).zfill(2)
-	fig.text(0.015,0.05,stations[i]+', cycle'+sdatec, va='center', rotation='horizontal',size=sl)
-	fig.text(0.96,0.05,str(c).zfill(3), va='center', rotation='horizontal',size=sl)
-	plt.grid(); plt.tight_layout();plt.axis('tight')
-	plt.ylim(ymin=np.nanmin(owspc[i,i1:i2+1,:]),ymax=np.nanmax(owspc[i,i1:i2+1,:])); plt.xlim(xmin=x[0]-0.1,xmax=x[-1]+0.1)
-	plt.savefig('TimeSeries_'+str(indi).zfill(3)+'_'+stations[i]+'_'+Nvar+'.png', dpi=100, facecolor='w', edgecolor='w',orientation='portrait', papertype=None, format='png',transparent=False, bbox_inches='tight', pad_inches=0.1)
-	plt.close(fig); del fig
+	time_series_plot('TimeSeries_'+str(indi).zfill(3)+'_'+stations[i]+'_'+Nvar+'.png',
+				owspc[i,indi,:],
+				ewspc[i,:,indi,:],
+				et[indi], eft,
+				variable_name = Nvar,
+				text = stations[i]+', cycle'+sdatec + '  ' + str(indi - i1 + 1))
 
 # convert -delay 100 -loop 0 TimeSeries_*_ma_dt302_v_WindSpeedAnemC.png TimeSeries_ma_dt302_v_WindSpeedAnemC.gif
+
+sys.exit(0)
 
 # Error versus Forecast time
 
@@ -171,74 +93,74 @@ for d in range(0,eft.shape[0]):
 	for i in range(0,stations.shape[0]):
 
 		a=np.array(np.nanmean(emsl[i,:,:,:],axis=0))[:,ind]; b=omsl[i,:,ind].T; inde=np.where(a*b> -999)
-		terrem[:,i,0,d] = merr.metrics(a[inde[0],inde[1]],b[inde[0],inde[1]]); del inde,a,b
+		terrem[:,i,0,d] = merr.metrics(a[inde[0],inde[1]],b[inde[0],inde[1]])
 		a=np.array(np.nanmean(eatmp[i,:,:,:],axis=0))[:,ind]; b=oatmp[i,:,ind].T; inde=np.where(a*b> -999)
-		terrem[:,i,1,d] = merr.metrics(a[inde[0],inde[1]],b[inde[0],inde[1]]); del inde,a,b
+		terrem[:,i,1,d] = merr.metrics(a[inde[0],inde[1]],b[inde[0],inde[1]])
 		a=np.array(np.nanmean(erh[i,:,:,:],axis=0))[:,ind]; b=orh[i,:,ind].T; inde=np.where(a*b> -999)
-		terrem[:,i,2,d] = merr.metrics(a[inde[0],inde[1]],b[inde[0],inde[1]]); del inde,a,b
+		terrem[:,i,2,d] = merr.metrics(a[inde[0],inde[1]],b[inde[0],inde[1]])
 		a=np.array(np.nanmean(ewspa[i,:,:,:],axis=0))[:,ind]; b=owspa[i,:,ind].T; inde=np.where(a*b> -999)
-		terrem[:,i,3,d] = merr.metrics(a[inde[0],inde[1]],b[inde[0],inde[1]]); del inde,a,b
+		terrem[:,i,3,d] = merr.metrics(a[inde[0],inde[1]],b[inde[0],inde[1]])
 		a=np.array(np.nanmean(ewdira[i,:,:,:],axis=0))[:,ind]; b=owdira[i,:,ind].T; inde=np.where(a*b> -999)
-		terrem[:,i,4,d] = merr.metrics(a[inde[0],inde[1]],b[inde[0],inde[1]]); del inde,a,b
+		terrem[:,i,4,d] = merr.metrics(a[inde[0],inde[1]],b[inde[0],inde[1]])
 		a=np.array(np.nanmean(ewspb[i,:,:,:],axis=0))[:,ind]; b=owspb[i,:,ind].T; inde=np.where(a*b> -999)
-		terrem[:,i,5,d] = merr.metrics(a[inde[0],inde[1]],b[inde[0],inde[1]]); del inde,a,b
+		terrem[:,i,5,d] = merr.metrics(a[inde[0],inde[1]],b[inde[0],inde[1]])
 		a=np.array(np.nanmean(ewspc[i,:,:,:],axis=0))[:,ind]; b=owspc[i,:,ind].T; inde=np.where(a*b> -999)
-		terrem[:,i,6,d] = merr.metrics(a[inde[0],inde[1]],b[inde[0],inde[1]]); del inde,a,b
+		terrem[:,i,6,d] = merr.metrics(a[inde[0],inde[1]],b[inde[0],inde[1]])
 		a=np.array(np.nanmean(ewdirc[i,:,:,:],axis=0))[:,ind]; b=owdirc[i,:,ind].T; inde=np.where(a*b> -999)
-		terrem[:,i,7,d] = merr.metrics(a[inde[0],inde[1]],b[inde[0],inde[1]]); del inde,a,b
+		terrem[:,i,7,d] = merr.metrics(a[inde[0],inde[1]],b[inde[0],inde[1]])
 
 		for j in range(0,ensm.shape[0]):
 
 			a=emsl[i,j,:,ind]; b=omsl[i,:,ind]; inde=np.where(a*b> -999)
-			terrms[:,i,0,j,d] = merr.metrics(a[inde[0],inde[1]],b[inde[0],inde[1]]); del inde,a,b
+			terrms[:,i,0,j,d] = merr.metrics(a[inde[0],inde[1]],b[inde[0],inde[1]])
 			a=eatmp[i,j,:,ind]; b=oatmp[i,:,ind]; inde=np.where(a*b> -999)
-			terrms[:,i,1,j,d] = merr.metrics(a[inde[0],inde[1]],b[inde[0],inde[1]]); del inde,a,b
+			terrms[:,i,1,j,d] = merr.metrics(a[inde[0],inde[1]],b[inde[0],inde[1]])
 			a=erh[i,j,:,ind]; b=orh[i,:,ind]; inde=np.where(a*b> -999)
-			terrms[:,i,2,j,d] = merr.metrics(a[inde[0],inde[1]],b[inde[0],inde[1]]); del inde,a,b
+			terrms[:,i,2,j,d] = merr.metrics(a[inde[0],inde[1]],b[inde[0],inde[1]])
 			a=ewspa[i,j,:,ind]; b=owspa[i,:,ind]; inde=np.where(a*b> -999)
-			terrms[:,i,3,j,d] = merr.metrics(a[inde[0],inde[1]],b[inde[0],inde[1]]); del inde,a,b
+			terrms[:,i,3,j,d] = merr.metrics(a[inde[0],inde[1]],b[inde[0],inde[1]])
 			a=ewdira[i,j,:,ind]; b=owdira[i,:,ind]; inde=np.where(a*b> -999)
-			terrms[:,i,4,j,d] = merr.metrics(a[inde[0],inde[1]],b[inde[0],inde[1]]); del inde,a,b
+			terrms[:,i,4,j,d] = merr.metrics(a[inde[0],inde[1]],b[inde[0],inde[1]])
 			a=ewspb[i,j,:,ind]; b=owspb[i,:,ind]; inde=np.where(a*b> -999)
-			terrms[:,i,5,j,d] = merr.metrics(a[inde[0],inde[1]],b[inde[0],inde[1]]); del inde,a,b
+			terrms[:,i,5,j,d] = merr.metrics(a[inde[0],inde[1]],b[inde[0],inde[1]])
 			a=ewspc[i,j,:,ind]; b=owspc[i,:,ind]; inde=np.where(a*b> -999)
-			terrms[:,i,6,j,d] = merr.metrics(a[inde[0],inde[1]],b[inde[0],inde[1]]); del inde,a,b
+			terrms[:,i,6,j,d] = merr.metrics(a[inde[0],inde[1]],b[inde[0],inde[1]])
 			a=ewdirc[i,j,:,ind]; b=owdirc[i,:,ind]; inde=np.where(a*b> -999)
-			terrms[:,i,7,j,d] = merr.metrics(a[inde[0],inde[1]],b[inde[0],inde[1]]); del inde,a,b
+			terrms[:,i,7,j,d] = merr.metrics(a[inde[0],inde[1]],b[inde[0],inde[1]])
 
 		# Daily Mean
 		# uniform_filter1d(gfs[ind],size=2),uniform_filter1d(obs[ind],size=2))
 		a=np.array(np.nanmean(emsl[i,:,:,d],axis=0)); b=omsl[i,:,d]; inde=np.where(a*b> -999)
-		terremd[:,i,0,d] = merr.metrics(a[inde],b[inde]); del inde,a,b
+		terremd[:,i,0,d] = merr.metrics(a[inde],b[inde])
 		a=np.array(np.nanmean(eatmp[i,:,:,d],axis=0)); b=oatmp[i,:,d]; inde=np.where(a*b> -999)
-		terremd[:,i,1,d] = merr.metrics(a[inde],b[inde]); del inde,a,b
+		terremd[:,i,1,d] = merr.metrics(a[inde],b[inde])
 		a=np.array(np.nanmean(erh[i,:,:,d],axis=0)); b=orh[i,:,d]; inde=np.where(a*b> -999)
-		terremd[:,i,2,d] = merr.metrics(a[inde],b[inde]); del inde,a,b
+		terremd[:,i,2,d] = merr.metrics(a[inde],b[inde])
 		a=np.array(np.nanmean(ewspa[i,:,:,d],axis=0)); b=owspa[i,:,d]; inde=np.where(a*b> -999)
-		terremd[:,i,3,d] = merr.metrics(a[inde],b[inde]); del inde,a,b
+		terremd[:,i,3,d] = merr.metrics(a[inde],b[inde])
 		a=np.array(np.nanmean(ewdira[i,:,:,d],axis=0)); b=owdira[i,:,d]; inde=np.where(a*b> -999)
-		terremd[:,i,4,d] = merr.metrics(a[inde],b[inde]); del inde,a,b
+		terremd[:,i,4,d] = merr.metrics(a[inde],b[inde])
 		a=np.array(np.nanmean(ewspb[i,:,:,d],axis=0)); b=owspb[i,:,d]; inde=np.where(a*b> -999)
-		terremd[:,i,5,d] = merr.metrics(a[inde],b[inde]); del inde,a,b
+		terremd[:,i,5,d] = merr.metrics(a[inde],b[inde])
 		a=np.array(np.nanmean(ewspc[i,:,:,d],axis=0)); b=owspc[i,:,d]; inde=np.where(a*b> -999)
-		terremd[:,i,6,d] = merr.metrics(a[inde],b[inde]); del inde,a,b
+		terremd[:,i,6,d] = merr.metrics(a[inde],b[inde])
 		a=np.array(np.nanmean(ewdirc[i,:,:,d],axis=0)); b=owdirc[i,:,d]; inde=np.where(a*b> -999)
-		terremd[:,i,7,d] = merr.metrics(a[inde],b[inde]); del inde,a,b
+		terremd[:,i,7,d] = merr.metrics(a[inde],b[inde])
 
-		# # Table err metrics
-		# fname = 'Table_ErrorECMWFemXForecastTime_'+stations[i]+'_D'+str(d+1).zfill(2)+'.txt'
-		# ifile = open(fname,'w')
-		# ifile.write('# '+hd2+' \n')
-		# ifile.write('# '+hd+' \n')
-		# np.savetxt(ifile,terrem[:,i,:,d].T,fmt="%12.3f",delimiter='	')
-		# ifile.close(); del ifile, fname
+		# Table err metrics
+		fname = 'Table_ErrorECMWFemXForecastTime_'+stations[i]+'_D'+str(d+1).zfill(2)+'.txt'
+		ifile = open(fname,'w')
+		ifile.write('# '+hd2+' \n')
+		ifile.write('# '+hd+' \n')
+		np.savetxt(ifile,terrem[:,i,:,d].T,fmt="%12.3f",delimiter='	')
+		ifile.close()
 
-		# fname = 'Table_ErrorECMWFemDMXForecastTime_'+stations[i]+'_D'+str(d+1).zfill(2)+'.txt'
-		# ifile = open(fname,'w')
-		# ifile.write('# '+hd3+' \n')
-		# ifile.write('# '+hd+' \n')
-		# np.savetxt(ifile,terremd[:,i,:,d].T,fmt="%12.3f",delimiter='	')
-		# ifile.close(); del ifile
+		fname = 'Table_ErrorECMWFemDMXForecastTime_'+stations[i]+'_D'+str(d+1).zfill(2)+'.txt'
+		ifile = open(fname,'w')
+		ifile.write('# '+hd3+' \n')
+		ifile.write('# '+hd+' \n')
+		np.savetxt(ifile,terremd[:,i,:,d].T,fmt="%12.3f",delimiter='	')
+		ifile.close()
 
 	print('done day '+repr(d))
 
@@ -267,12 +189,12 @@ for i in range(0,np.size(Nvar)):
 				ax.plot(eft,gaussian_filter(terrms[l,indst[indstma][j],i,k,:], 1.), color=scolors[indstma[j]],linewidth=0.1,zorder=1)
 
 		plt.legend()
-		ax.set_xlabel('Forecast Time (Days)',size=sl); ax.set_ylabel(nerrm[l]+' '+Nvar[i],size=sl)
+		ax.set_xlabel('Forecast Time (Days)',size=SL); ax.set_ylabel(nerrm[l]+' '+Nvar[i],size=SL)
 		plt.tight_layout();plt.axis('tight')
 		plt.grid(c='k', ls='-', alpha=0.3)
 		plt.xticks(np.array([1,5,10,15,20,30,40])); plt.xlim(xmin = 0.9, xmax = eft[-1]+0.1)
 		plt.savefig('ErrXForecastTime_Maranhao_'+nerrm[l]+'_'+Nvar[i]+'_leadsComparison.png', dpi=300, facecolor='w', edgecolor='w',orientation='portrait', papertype=None, format='png',transparent=False, bbox_inches='tight', pad_inches=0.1)
-		plt.close(fig1); del fig1, ax
+		plt.close(fig1)
 
 		# Piaui
 		fig1 = plt.figure(1,figsize=(7,6)); ax = fig1.add_subplot(111)
@@ -282,12 +204,12 @@ for i in range(0,np.size(Nvar)):
 				ax.plot(eft,gaussian_filter(terrms[l,indst[indstpi][j],i,k,:], 1.), color=scolors[indstpi[j]],linewidth=0.1,zorder=1)
 
 		plt.legend()
-		ax.set_xlabel('Forecast Time (Days)',size=sl); ax.set_ylabel(nerrm[l]+' '+Nvar[i],size=sl)
+		ax.set_xlabel('Forecast Time (Days)',size=SL); ax.set_ylabel(nerrm[l]+' '+Nvar[i],size=SL)
 		plt.tight_layout();plt.axis('tight')
 		plt.grid(c='k', ls='-', alpha=0.3)
 		plt.xticks(np.array([1,5,10,15,20,30,40])); plt.xlim(xmin = 0.9, xmax = eft[-1]+0.1)
 		plt.savefig('ErrXForecastTime_Piaui__'+nerrm[l]+'_'+Nvar[i]+'_leadsComparison.png', dpi=300, facecolor='w', edgecolor='w',orientation='portrait', papertype=None, format='png',transparent=False, bbox_inches='tight', pad_inches=0.1)
-		plt.close(fig1); del fig1, ax
+		plt.close(fig1)
 
 
 	# Table Mean error All stations
@@ -300,6 +222,6 @@ for i in range(0,np.size(Nvar)):
 	for l in range(0,8):
 		np.savetxt(ifile,np.atleast_2d(np.nanmean(terrem[l,indst,i,:],axis=0)),fmt="%12.5f",delimiter='	')
 
-	ifile.close(); del ifile, fname
+	ifile.close()
 
 
