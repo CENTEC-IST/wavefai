@@ -1,4 +1,5 @@
 *.nc
 *.png
 **/__pycache__
-test_output/*
+real_output/*
+output/*

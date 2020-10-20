@@ -4,6 +4,12 @@ import time
 
 from lib.plots import time_series_plot
 
+OUTPUT_DIR = 'output/'
+
+if not os.path.exists(OUTPUT_DIR):
+	os.makedirs(OUTPUT_DIR)
+
+
 f=nc.Dataset('ECMWFifs_and_Obsv_StationPos_2017111300_2020082300.nc')
 et=f.variables['cycletime'][:]
 eft=f.variables['forecast_time'][:]
@@ -14,10 +20,6 @@ ewspc=f.variables['ecmwf_wsp_AnemCsup'][:,:,:,:]
 owspc=f.variables['omega_wsp_AnemCsup'][:,:,:]
 f.close()
 
-# Sellection of stations to plot
-NvarAnh=['AnemA','AnemB','AnemC']
-Nvaren=['AtmPressure','Temperature','RHumidity','WindSpeed','WindDir']
-
 
 # TIME SERIES PLOT ==========================
 
@@ -26,7 +28,7 @@ i1=154; i2=223
 for indi in range(i1,i2+1):
 	# Pressure
 	sdatec=time.strftime('%Y%m%d', time.gmtime(et[indi]))
-	time_series_plot(f"TimeSeries_{indi:03}_{stations[i]}_AtmPressure.png",
+	time_series_plot(f"{OUTPUT_DIR}/TimeSeries_{indi:03}_{stations[i]}_AtmPressure.png",
 				oatmp[i,indi,:],
 				eatmp[i,:,indi,:],
 				et[indi], eft,
@@ -34,7 +36,7 @@ for indi in range(i1,i2+1):
 				text = f"{stations[i]}, cycle{sdatec}  {indi - i1 + 1}")
 
 	# WindSpeed
-	time_series_plot(f"TimeSeries_{indi:03}_{stations[i]}_WindSpeed AnemC.png",
+	time_series_plot(f"{OUTPUT_DIR}/TimeSeries_{indi:03}_{stations[i]}_WindSpeed AnemC.png",
 				owspc[i,indi,:],
 				ewspc[i,:,indi,:],
 				et[indi], eft,

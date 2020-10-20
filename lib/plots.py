@@ -22,7 +22,7 @@ matplotlib.use('Agg')
 DEFAULT_PALETTE = plt.cm.jet
 # DEFAULT_PALETTE.set_bad('aqua', 10.0) # XXX Was used in merr.py
 
-def chiclet_plot(img_name, data, date_time, forecast_time, lev,
+def chiclet_plot(img_name, data, date_time, forecast_time, levels,
 		color_palette=DEFAULT_PALETTE, extend="both", sl=FONT_SIZE, img_format='png'):
 	'''Chiclet plot function... TODO
 	Prameters:
@@ -30,16 +30,16 @@ def chiclet_plot(img_name, data, date_time, forecast_time, lev,
 		data -- TODO
 		date_time -- TODO
 		forecast_time -- forecast timestamps
-		lev -- TODO
+		levels -- TODO
 	Optional:
 		color_palette -- matplotlib.cm object representing color palette. Defaults to plt.cm.jet
-		extend -- TODO
+		extend -- TODO ('max', 'min', 'both'). Default is 'both'
 		sl -- text size
 		img_format -- file type to produce ('jpg' or 'png'). Defaults to 'png'
 	'''
 	fig, ax1 = plt.subplots(1,figsize=(16,4), sharex=True, sharey=True)
 	plt.xlabel("Time (month/year)",size=sl)
-	im1 = ax1.contourf(date_time,(forecast_time/3600.)/24., data, lev, cmap=color_palette, extend=extend)
+	im1 = ax1.contourf(date_time,(forecast_time/3600.)/24., data, levels, cmap=color_palette, extend=extend)
 	divider = make_axes_locatable(ax1)
 	cax = divider.append_axes("right", size="2%", pad=0.2)
 	cb = plt.colorbar(im1, cax=cax)
@@ -154,11 +154,11 @@ def cerrXftimetime(img_name, dates, timeAhead, merr, Nvar, Nmetric, sl=FONT_SIZE
 	fig, ax1 = plt.subplots(1,figsize=(12,3.5), sharex=True, sharey=True)
 	plt.xlabel("Time (month/year)",size=sl)
 	if Nmetric=='Bias' or Nmetric=='NBias':
-		lev= np.linspace(-np.nanpercentile(abs(merr),98.),np.nanpercentile(abs(merr),98.),100)
-		im1 = ax1.contourf(dates,timeAhead/(3600.*24.),merr.T,lev,cmap=color_palette,extend="both")
+		levels= np.linspace(-np.nanpercentile(abs(merr),98.),np.nanpercentile(abs(merr),98.),100)
+		im1 = ax1.contourf(dates,timeAhead/(3600.*24.),merr.T,levels,cmap=color_palette,extend="both")
 	else:
-		lev= np.linspace(np.nanmin(merr),np.nanpercentile(merr,98.),100)
-		im1 = ax1.contourf(dates,timeAhead/(3600.*24.),merr.T,lev,cmap=color_palette,extend="max")
+		levels= np.linspace(np.nanmin(merr),np.nanpercentile(merr,98.),100)
+		im1 = ax1.contourf(dates,timeAhead/(3600.*24.),merr.T,levels,cmap=color_palette,extend="max")
 
 	divider = make_axes_locatable(ax1); cax = divider.append_axes("right", size="2%", pad=0.2); cb = plt.colorbar(im1, cax=cax); tick_locator = ticker.MaxNLocator(nbins=7)
 	cb.locator = tick_locator; cb.update_ticks()
@@ -169,28 +169,28 @@ def cerrXftimetime(img_name, dates, timeAhead, merr, Nvar, Nmetric, sl=FONT_SIZE
 	plt.close(fig)
 
 # Contourf of Error X Forecast Time X Quaniles
-def errXftimeXQuantile(img_name, meval, nvepe, timeAhead, Nvar, Nmetric, sl=FONT_SIZE, lev=None):
+def errXftimeXQuantile(img_name, meval, nvepe, timeAhead, Nvar, Nmetric, sl=FONT_SIZE, levels=None):
 	# TODO finish fixing this function
 	meval = gaussian_filter(copy.copy(meval), 0.8) # smooth
 	fig,ax1 = plt.subplots(figsize=(6,5))
 	if Nmetric=='Bias' or Nmetric=='NBias':
-		if not lev:
-			lev=np.linspace(-np.nanpercentile(np.abs(meval[meval[:,:]> -999.]),99.9),np.nanpercentile(np.abs(meval[meval[:,:]> -999.]),99.9),100)
+		if not levels:
+			levels=np.linspace(-np.nanpercentile(np.abs(meval[meval[:,:]> -999.]),99.9),np.nanpercentile(np.abs(meval[meval[:,:]> -999.]),99.9),100)
 
 		palette = plt.cm.RdBu_r
-		im2 = ax1.contourf(nvepe, (timeAhead/(3600*24)),meval,lev,cmap=palette,extend="both")
+		im2 = ax1.contourf(nvepe, (timeAhead/(3600*24)),meval,levels,cmap=palette,extend="both")
 	elif Nmetric=='CC':
-		if not lev:
-			lev=np.linspace(np.nanmin(meval[meval[:,:]> -999.]),1.,100)
+		if not levels:
+			levels=np.linspace(np.nanmin(meval[meval[:,:]> -999.]),1.,100)
 
 		palette = plt.cm.gist_stern
-		im2 = ax1.contourf(nvepe, (timeAhead/(3600*24)),meval,lev,cmap=palette,extend="min")
+		im2 = ax1.contourf(nvepe, (timeAhead/(3600*24)),meval,levels,cmap=palette,extend="min")
 	else:
-		if not lev:
-			lev=np.linspace(np.nanmin(meval[meval[:,:]> -999.]),np.nanpercentile(meval[meval[:,:]> -999.],99.9),100)
+		if not levels:
+			levels=np.linspace(np.nanmin(meval[meval[:,:]> -999.]),np.nanpercentile(meval[meval[:,:]> -999.],99.9),100)
 
 		palette = plt.cm.gist_stern_r
-		im2 = ax1.contourf(nvepe, (timeAhead/(3600*24)),meval,lev,cmap=palette,extend="max")
+		im2 = ax1.contourf(nvepe, (timeAhead/(3600*24)),meval,levels,cmap=palette,extend="max")
 
 	ax1.set_xlabel('Quantile of '+Nvar,size=sl); ax1.set_ylabel("Forecast Time (Days)",size=sl); plt.grid()
 	divider = make_axes_locatable(ax1); cax = divider.append_axes("right", size="4%", pad=0.2); cb = plt.colorbar(im2, cax=cax); tick_locator = ticker.MaxNLocator(nbins=7)
