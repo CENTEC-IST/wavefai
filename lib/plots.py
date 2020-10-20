@@ -10,23 +10,27 @@ from datetime import datetime
 from scipy.ndimage.filters import gaussian_filter
 from scipy.stats import gaussian_kde
 
-SL = 13
+FONT_SIZE = 13
 
-plt.rc('font', size=SL)
-matplotlib.rc('xtick', labelsize=SL)
-matplotlib.rc('ytick', labelsize=SL)
-matplotlib.rcParams.update({'font.size': SL})
+# SET some default values
+plt.rc('font', size=FONT_SIZE)
+matplotlib.rc('xtick', labelsize=FONT_SIZE)
+matplotlib.rc('ytick', labelsize=FONT_SIZE)
+matplotlib.rcParams.update({'font.size': FONT_SIZE})
 matplotlib.use('Agg')
 
 DEFAULT_PALETTE = plt.cm.jet
 # DEFAULT_PALETTE.set_bad('aqua', 10.0) # XXX Was used in merr.py
 
 def chiclet_plot(img_name, data, date_time, forecast_time, lev,
-		color_palette=DEFAULT_PALETTE, extend="both", sl=SL, img_format='png'):
+		color_palette=DEFAULT_PALETTE, extend="both", sl=FONT_SIZE, img_format='png'):
 	'''Chiclet plot function... TODO
 	Prameters:
-		img_name --
+		img_name -- name of the output image file. The image format can be controlled with `img_format`
+		data -- TODO
+		date_time -- TODO
 		forecast_time -- forecast timestamps
+		lev -- TODO
 	Optional:
 		color_palette -- matplotlib.cm object representing color palette. Defaults to plt.cm.jet
 		extend -- TODO
@@ -47,13 +51,14 @@ def chiclet_plot(img_name, data, date_time, forecast_time, lev,
 	plt.tight_layout()
 	plt.axis('tight')
 	fig.text(0.000, 0.53, 'Forecast Time (Days)', va='center', rotation='vertical',size=sl)
-	plt.savefig(img_name, dpi=300, facecolor='w', edgecolor='w',orientation='portrait', papertype=None, format=img_format,transparent=False, bbox_inches='tight', pad_inches=0.1)
+	plt.savefig(img_name, dpi=300, facecolor='w', edgecolor='w',orientation='portrait',
+			papertype=None, format=img_format,transparent=False, bbox_inches='tight', pad_inches=0.1)
 	plt.close(fig)
 
 
 
 def time_series_plot(img_name, observation_data, ensemble_members, cycle_time, forecast_time,
-		variable_name = None, text=None, sl=SL, img_format='png'):
+		variable_name = None, text=None, sl=FONT_SIZE, img_format='png'):
 	'''This function generates a plot for .. TODO
 	Parameters:
 		img_name -- name of the output image file. The image format can be controlled with `img_format`
@@ -93,17 +98,18 @@ def time_series_plot(img_name, observation_data, ensemble_members, cycle_time, f
 	plt.tight_layout()
 	plt.axis('tight')
 	plt.xlim(xmin=pred_time[0]-0.1,xmax=pred_time[-1]+0.1)
-	plt.savefig(img_name, dpi=300, facecolor='w', edgecolor='w',orientation='portrait', papertype=None, format=img_format,transparent=False, bbox_inches='tight', pad_inches=0.1)
+	plt.savefig(img_name, dpi=300, facecolor='w', edgecolor='w',orientation='portrait',
+			papertype=None, format=img_format,transparent=False, bbox_inches='tight', pad_inches=0.1)
 	plt.close(fig)
 
 
 
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-# TODO test the code bellow
+# TODO test the code bellow -- it was copied straight from Ricardo's merr.py
 
 # Error X Forecast time
-def errXftime(img_name, timeAhead, merr, ccol, mmark, llinst, Nvar, Nmetric, sl=SL):
+def errXftime(img_name, timeAhead, merr, ccol, mmark, llinst, Nvar, Nmetric, sl=FONT_SIZE):
 
 	ccol = np.atleast_1d(ccol) ; mmark = np.atleast_1d(mmark) ; llinst = np.atleast_1d(llinst)
 	merr = np.atleast_2d(merr)
@@ -124,7 +130,7 @@ def errXftime(img_name, timeAhead, merr, ccol, mmark, llinst, Nvar, Nmetric, sl=
 	plt.close(fig1)
 
 # Plot Error X Percentiles, for diff forecast times
-def errXpercentile(img_name, nvepe, vepe, merr, ccol, mmark, llinst, Nvar, Nmetric, sl=SL):
+def errXpercentile(img_name, nvepe, vepe, merr, ccol, mmark, llinst, Nvar, Nmetric, sl=FONT_SIZE):
 
 	ccol = np.atleast_1d(ccol) ; mmark = np.atleast_1d(mmark) ; llinst = np.atleast_1d(llinst)
 	vepe = np.atleast_2d(vepe) ; merr = np.atleast_2d(merr) ;
@@ -143,7 +149,7 @@ def errXpercentile(img_name, nvepe, vepe, merr, ccol, mmark, llinst, Nvar, Nmetr
 	plt.close(fig1)
 
 # Contourf of Error X forecast time X time
-def cerrXftimetime(img_name, dates, timeAhead, merr, Nvar, Nmetric, sl=SL, color_palette=DEFAULT_PALETTE):
+def cerrXftimetime(img_name, dates, timeAhead, merr, Nvar, Nmetric, sl=FONT_SIZE, color_palette=DEFAULT_PALETTE):
 
 	fig, ax1 = plt.subplots(1,figsize=(12,3.5), sharex=True, sharey=True)
 	plt.xlabel("Time (month/year)",size=sl)
@@ -163,7 +169,7 @@ def cerrXftimetime(img_name, dates, timeAhead, merr, Nvar, Nmetric, sl=SL, color
 	plt.close(fig)
 
 # Contourf of Error X Forecast Time X Quaniles
-def errXftimeXQuantile(img_name, meval, nvepe, timeAhead, Nvar, Nmetric, sl=SL, lev=None):
+def errXftimeXQuantile(img_name, meval, nvepe, timeAhead, Nvar, Nmetric, sl=FONT_SIZE, lev=None):
 	# TODO finish fixing this function
 	meval = gaussian_filter(copy.copy(meval), 0.8) # smooth
 	fig,ax1 = plt.subplots(figsize=(6,5))
@@ -197,7 +203,7 @@ def errXftimeXQuantile(img_name, meval, nvepe, timeAhead, Nvar, Nmetric, sl=SL, 
 	plt.close(fig); del fig, ax1,im2
 
 # QQ-plots
-def eqqplot(img_name, obs, model, ccol, mmark, llinst, Nvar, sl=SL):
+def eqqplot(img_name, obs, model, ccol, mmark, llinst, Nvar, sl=FONT_SIZE):
 
 	ccol = np.atleast_1d(ccol) ; mmark = np.atleast_1d(mmark) ; llinst = np.atleast_1d(llinst)
 	model = np.atleast_2d(model)
@@ -229,7 +235,7 @@ def eqqplot(img_name, obs, model, ccol, mmark, llinst, Nvar, sl=SL):
 	plt.close(fig1)
 
 # Probability Density Function plots
-def epdf(img_name, obs, model, ccol, mmark, llinst, Nvar, sl=SL):
+def epdf(img_name, obs, model, ccol, mmark, llinst, Nvar, sl=FONT_SIZE):
 
 	ccol = np.atleast_1d(ccol) ; mmark = np.atleast_1d(mmark) ; llinst = np.atleast_1d(llinst)
 	model = np.atleast_2d(model) ; obs = np.atleast_2d(obs)
@@ -255,7 +261,7 @@ def epdf(img_name, obs, model, ccol, mmark, llinst, Nvar, sl=SL):
 	plt.close(fig1)
 
 # Probability Density Function plots - using log scale
-def epdflogs(img_name, obs, model, ccol, mmark, llinst, Nvar, sl=SL):
+def epdflogs(img_name, obs, model, ccol, mmark, llinst, Nvar, sl=FONT_SIZE):
 
 	ccol = np.atleast_1d(ccol) ; mmark = np.atleast_1d(mmark) ; llinst = np.atleast_1d(llinst)
 	model = np.atleast_2d(model) ; obs = np.atleast_2d(obs)
@@ -282,7 +288,7 @@ def epdflogs(img_name, obs, model, ccol, mmark, llinst, Nvar, sl=SL):
 	plt.close(fig1)
 
 # Error X Latitude
-def errXlat(img_name, lat, merr, ccol, mmark, llinst, Nvar, Nmetric, latick, sl=SL):
+def errXlat(img_name, lat, merr, ccol, mmark, llinst, Nvar, Nmetric, latick, sl=FONT_SIZE):
 
 	ccol = np.atleast_1d(ccol) ; mmark = np.atleast_1d(mmark) ; llinst = np.atleast_1d(llinst)
 	merr = np.atleast_2d(merr)
