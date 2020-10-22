@@ -1,6 +1,6 @@
 import numpy as np
 
-def metrics(*args):
+def metrics(model, obs, vmin=-np.inf, vmax=np.inf, maxdiff=np.inf):
 	'''
 	Error Metrics. Mentaschi et al. (2013)
 	Input: two arrays of model and observation, respectively.
@@ -9,39 +9,21 @@ def metrics(*args):
 		bias, RMSE, NBias, NRMSE, SCrmse, SI, HH, CC
 	'''
 
-	# TODO remove copy
-	# TODO remove argument list
-	vmin=-np.inf; vmax=np.inf; maxdiff=np.inf
-	if len(args) < 2:
-		sys.exit(' Need two arrays with model and observations.')
-	elif len(args) == 2:
-		model=copy.copy(args[0]); obs=copy.copy(args[1])
-	elif len(args) == 3:
-		model=copy.copy(args[0]); obs=copy.copy(args[1])
-		vmin=copy.copy(args[2])
-	elif len(args) == 4:
-		model=copy.copy(args[0]); obs=copy.copy(args[1])
-		vmin=copy.copy(args[2]); vmax=copy.copy(args[3])
-	elif len(args) == 5:
-		model=copy.copy(args[0]); obs=copy.copy(args[1])
-		vmin=copy.copy(args[2]); vmax=copy.copy(args[3]); maxdiff=copy.copy(args[4]);
-	elif len(args) > 5:
-		sys.exit(' Too many inputs')
-
 	model=np.atleast_1d(model); obs=np.atleast_1d(obs)
 	if model.shape != obs.shape:
-		sys.exit(' Model and Observations with different size.')
+		raise ValueError('Model and Observations with different size.')
 	if vmax<=vmin:
 		sys.exit(' vmin cannot be higher than vmax.')
 
 	ind=np.where((np.isnan(model)==False) & (np.isnan(obs)==False) & (model>vmin) & (model<vmax) & (obs>vmin) & (obs<vmax) & (np.abs(model-obs)<=maxdiff) )
 	if np.any(ind) or model.shape[0]==1:
-		model=np.copy(model[ind[0]]); obs=np.copy(obs[ind[0]])
+		model = model[ind[0]]
+		obs = obs[ind[0]]
 	else:
-		sys.exit(' Array without valid numbers.')
+		raise ValueError('Array without valid numbers.')
 
 	ferr=np.zeros((8),'f')*np.nan
-	ferr[0] = model.mean()-obs.mean() # Bias
+	ferr[0] = model.mean() - obs.mean() # Bias
 	ferr[1] = (((model-obs)**2).mean())**0.5 # RMSE
 	if obs.mean()!=0.:
 		ferr[2] = ferr[0] / np.abs(obs.mean()) # Normalized Bias
@@ -55,7 +37,8 @@ def metrics(*args):
 
 	return ferr
 
-def imetrics(*args):
+
+def imetrics(model, obs, vmin=-np.inf, vmax=np.inf, maxdiff=np.inf):
 	'''
 	Error Metrics at each individual instant. Same equations of Mentaschi et al. (2013), but using n equal to one.
 	Input: two arrays of model and observation, respectively.
@@ -63,23 +46,6 @@ def imetrics(*args):
 	Output: ferr array with shape equal to [inpShape,8]
 		bias, RMSE, NBias, NRMSE, SCrmse, SI, HH, CC
 	'''
-
-	vmin=-np.inf; vmax=np.inf; maxdiff=np.inf
-	if len(args) < 2:
-		sys.exit(' Need two arrays with model and observations.')
-	elif len(args) == 2:
-		model=copy.copy(args[0]); obs=copy.copy(args[1])
-	elif len(args) == 3:
-		model=copy.copy(args[0]); obs=copy.copy(args[1])
-		vmin=copy.copy(args[2])
-	elif len(args) == 4:
-		model=copy.copy(args[0]); obs=copy.copy(args[1])
-		vmin=copy.copy(args[2]); vmax=copy.copy(args[3])
-	elif len(args) == 5:
-		model=copy.copy(args[0]); obs=copy.copy(args[1])
-		vmin=copy.copy(args[2]); vmax=copy.copy(args[3]); maxdiff=copy.copy(args[4]);
-	elif len(args) > 5:
-		sys.exit(' Too many inputs')
 
 	model=np.atleast_1d(model); obs=np.atleast_1d(obs)
 	if model.shape != obs.shape:
@@ -89,7 +55,7 @@ def imetrics(*args):
 
 	ind=np.where((np.isnan(model)==False) & (np.isnan(obs)==False) & (model>vmin) & (model<vmax) & (obs>vmin) & (obs<vmax))
 	if model.shape[0]>1 and np.any(ind)==False:
-		sys.exit(' Array without valid numbers.')
+		raise ValueError('Array without valid numbers.')
 
 	ferr=np.zeros((model.shape[0],8),'f')*np.nan
 	for i in range(0,model.shape[0]):

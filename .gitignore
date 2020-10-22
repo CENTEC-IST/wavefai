@@ -1,5 +1,6 @@
 *.nc
 *.png
+*.txt
 **/__pycache__
 real_output/*
 output/*
