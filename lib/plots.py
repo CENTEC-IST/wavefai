@@ -6,6 +6,7 @@ from matplotlib import ticker
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from pylab import DateFormatter, date2num
 from datetime import datetime
+from bokeh.plotting import figure, output_file, show
 
 from scipy.ndimage.filters import gaussian_filter
 from scipy.stats import gaussian_kde
@@ -57,7 +58,7 @@ def chiclet_plot(img_name, data, date_time, forecast_time, levels,
 
 
 
-def time_series_plot(img_name, observation_data, ensemble_members, cycle_time, forecast_time,
+def time_series_forecast_plot(img_name, observation_data, ensemble_members, cycle_time, forecast_time,
 		variable_name = None, text=None, sl=FONT_SIZE, img_format='png'):
 	'''This function generates a plot for .. TODO
 	Parameters:
@@ -103,6 +104,69 @@ def time_series_plot(img_name, observation_data, ensemble_members, cycle_time, f
 	plt.close(fig)
 
 
+def time_series_plot(filename, observation_data, ensemble_data, date_time,
+		obs_name=None, obs_color='blue', ens_names=[], ens_colors=[], format='png', sl = FONT_SIZE):
+	'''Produces a time series plot for Observed date and multiple ensemble data given.
+	Parameters:
+		filename -- Name of the files to produce (with extension)
+		observation_data -- 1D array with the observed data
+		ensemble_data -- List of 2D arrays with each ensemble data
+		date_time -- 1D time array
+	Optional:
+		obs_name -- Name of the observed data
+		obs_color -- Color of the observed data
+		ens_names -- List of names for each ensembled data
+		ens_colors -- List of colors for the ensemble data
+		format -- The format of the output. Can be 'png', 'jpg', 'html'. Default is 'png'
+		sl -- Font size
+	'''
+	# Process parameters
+	if not obs_name:
+		if hasattr(observation_data, 'name'): # this is probably some DataArray
+			obs_name = observation_data.name
+		observation_data = np.asarray(observation_data)
+	if not ens_names:
+		for i, e in enumerate(ensemble_data):
+			if hasattr(e, 'name'): # this is probably some DataArray
+				ens_names.append(e.name)
+			ensemble_data[i] = np.asarray(e)
+	if not ens_colors:
+		ens_colors = ['red' for k in ensemble_data]
+	date_time = np.asarray(date_time)
+
+
+	if format == 'html':
+		p = figure(plot_width=1500, plot_height=350, x_axis_type='datetime')
+		p.title.text = 'Click on legend entries to hide the corresponding lines'
+		p.line(date_time, observation_data, line_width=3, color=obs_color, alpha=0.8, legend_label=obs_name)
+		for i, e in enumerate(ensemble_data):
+			p.line(date_time, e, line_width=2, color=ens_colors[i], alpha=0.8, legend_label=ens_names[i])
+		p.legend.location = "top_left"
+		p.legend.click_policy = "hide"
+		p.xaxis.axis_label = 'VelVenMedSup' # TODO
+		p.yaxis.axis_label = 'Time'
+		output_file(filename)
+		# show(p)
+	else:
+		fig = plt.figure(figsize=(15,3.5))
+		ax = fig.add_subplot(111)
+
+		ax.plot_date(date_time, observation_data, '-',
+				color=obs_color, label=obs_name, linewidth=2.)
+
+		for i, e in enumerate(ensemble_data):
+			ax.plot_date(date_time, e, '-', color=ens_colors[i], label=ens_names[i], linewidth=1.)
+		plt.legend(loc='upper left')
+		plt.ylabel('VelVenMedSup', fontsize=sl) # TODO
+		plt.xlabel("Tempo", fontsize=sl)
+		for label in ax.get_xticklabels() + ax.get_yticklabels():
+			label.set_fontsize(sl)
+		plt.grid()
+		plt.tight_layout()
+		plt.axis('tight')
+		plt.savefig(filename, dpi=300, facecolor='w', edgecolor='w', orientation='portrait',
+				papertype=None, format=format,transparent=False, bbox_inches='tight', pad_inches=0.1)
+		plt.close(fig)
 
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
