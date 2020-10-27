@@ -21,7 +21,7 @@ owspc=f.variables['omega_wsp_AnemCsup'][:,:,:]
 f.close()
 
 
-# TIME SERIES PLOT ==========================
+# TIME SERIES FORECAST PLOT ==========================
 
 i=1 # Station 'ma_dt302_v'
 i1=154; i2=223
@@ -46,8 +46,7 @@ for indi in range(i1,i2+1):
 # convert -delay 100 -loop 0 TimeSeries_*_ma_dt302_v_AtmPressure.png TimeSeries_ma_dt302_v_AtmPressure.gif
 # convert -delay 100 -loop 0 TimeSeries_*_ma_dt302_v_WindSpeedAnemC.png TimeSeries_ma_dt302_v_WindSpeedAnemC.gif
 
-
-# PLOT TIME SERIES
+# TIME SERIES PLOT ==========================
 d = xarray.open_dataset('ECMWFifs_and_Obsv_StationPos_2017111300_2020082300.nc')
 station = 0
 fc_time = 0

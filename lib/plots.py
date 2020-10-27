@@ -57,7 +57,6 @@ def chiclet_plot(img_name, data, date_time, forecast_time, levels,
 	plt.close(fig)
 
 
-
 def time_series_forecast_plot(img_name, observation_data, ensemble_members, cycle_time, forecast_time,
 		variable_name = None, text=None, sl=FONT_SIZE, img_format='png'):
 	'''This function generates a plot for .. TODO
