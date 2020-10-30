@@ -1,5 +1,3 @@
-#!/home/rmc/progs/python/anaconda3/bin/ipython --pylab=auto
-
 import os
 import netCDF4 as nc
 import numpy as np

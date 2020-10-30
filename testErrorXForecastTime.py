@@ -1,14 +1,15 @@
-import os, sys
+import os
 import numpy as np
-import matplotlib
-import matplotlib.pyplot as plt
 import xarray
-from scipy.ndimage.filters import gaussian_filter
 
 from lib.errors import metrics
 from lib.plots import errors_plot
 
-SL=13
+OUTPUT_DIR = 'output/'
+
+if not os.path.exists(OUTPUT_DIR):
+	os.makedirs(OUTPUT_DIR)
+
 
 xdata = xarray.open_dataset('ECMWFifs_and_Obsv_StationPos_2017111300_2020082300.nc')
 
@@ -87,12 +88,12 @@ for var in range(len(Nvar)):
 	for err in range(len(error_type)):
 		# Maranhao
 
-		errors_plot(f"ErrXForecastTime_Maranhao_{error_type[err]}_{Nvar[var]}.png",
+		errors_plot(f"{OUTPUT_DIR}/ErrXForecastTime_Maranhao_{error_type[err]}_{Nvar[var]}.png",
 				terrms[err,:,var,:,:], terrem[err,:,var,:], eft_i, station_indexes = station_indexes[stations_maranhao],
 				colors=scolors[stations_maranhao], labels=fnames[stations_maranhao],
 				ylabel=error_type[err]+' '+Nvar[var])
 
-		errors_plot(f"ErrXForecastTime_Piaui_{error_type[err]}_{Nvar[var]}.png",
+		errors_plot(f"{OUTPUT_DIR}/ErrXForecastTime_Piaui_{error_type[err]}_{Nvar[var]}.png",
 				terrms[err,:,var,:,:], terrem[err,:,var,:], eft_i, station_indexes = station_indexes[stations_piaui],
 				colors=scolors[stations_piaui], labels=fnames[stations_piaui],
 				ylabel=error_type[err]+' '+Nvar[var])

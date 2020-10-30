@@ -167,6 +167,66 @@ def time_series_plot(filename, observation_data, ensemble_data, date_time,
 				papertype=None, format=format,transparent=False, bbox_inches='tight', pad_inches=0.1)
 		plt.close(fig)
 
+def qq_plot(filename, observation_data, ensemble_data, ens_names=[], ens_colors=[], format='png', sl=FONT_SIZE):
+	'''Produces a QQ plot to compare Observed data and the multiple ensemble data given.
+	Parameters:
+		filename -- Name of the files to produce (with extension)
+		observation_data -- 1D array with the observed data
+		ensemble_data -- List of 1D arrays with each ensemble data
+	Optional:
+		ens_names -- List of names for each ensembled data
+		ens_colors -- List of colors for the ensemble data
+		format -- The format of the output. Can be 'png', 'jpg', 'html'. Default is 'png'
+		sl -- Font size
+	'''
+	if not ens_names:
+		for i, e in enumerate(ensemble_data):
+			if hasattr(e, 'name'):
+				ens_names.append(e.name)
+			ensemble_data[i] = np.asarray(e)
+	if not ens_colors:
+		ens_colors = ['red' for k in ensemble_data]
+	
+	if format == 'html':
+		p = figure(plot_width=700, plot_height=600)
+		p.title.text = 'Click on legend entries to hide the corresponding lines'
+		p.line(aux,aux,line_width=2,color='black',alpha=0.8)
+		for i, e in enumerate(ensemble_data):
+			p.circle(np.sort(observation_data), np.sort(e), size=5, color=ens_colors[i], alpha=0.8, legend_label=ens_names[i])
+		p.legend.location = "top_left"
+		p.legend.click_policy = "hide"
+		p.xaxis.axis_label = 'Medicoes'
+		p.yaxis.axis_label = 'Modelo'
+		output_file(filename)
+		# show(p)
+	else:
+		a=np.nanmin(ensemble_data)
+		b=np.nanmax(ensemble_data)
+		px=np.linspace(a,b,100)
+		aux=np.linspace(a-0.01*np.abs(b-a),b+0.01*np.abs(b-a),np.arange(1,99,1).shape[0])
+		fig1 = plt.figure(1,figsize=(8,6))
+		ax1 = fig1.add_subplot(111)
+
+		ax1.plot(aux,aux,'k',linewidth=1.)
+
+		for i, e in enumerate(ensemble_data):
+			ax1.plot(np.sort(observation_data), np.sort(e),'.',color=ens_colors[i],label=ens_names[i])
+
+		plt.ylim(ymax = aux.max(), ymin = aux.min())
+		plt.xlim(xmax = aux.max(), xmin = aux.min())
+		plt.xticks(np.arange(aux.min(),aux.max(),(aux.max() - aux.min()) / 10))
+		plt.yticks(np.arange(aux.min(),aux.max(),(aux.max() - aux.min()) / 10))
+		plt.locator_params(axis='y', nbins=7)
+		plt.locator_params(axis='x', nbins=7)
+		plt.legend()
+		ax1.set_xlabel('Medicoes ',size=sl)
+		ax1.set_ylabel('Modelo ',size=sl)
+		plt.tight_layout()
+# plt.axis('tight')
+		plt.grid(c='k', ls='-', alpha=0.3)
+		plt.savefig(filename, dpi=300, facecolor='w', edgecolor='w',orientation='portrait', papertype=None, format=format,transparent=False, bbox_inches='tight', pad_inches=0.1)
+		plt.close(fig1)
+
 
 def errors_plot(img_name, error_data, error_data_mean, forecast_time, station_indexes=None, colors=None, labels=None, ylabel=None, img_format='png', sl=FONT_SIZE):
 	'''This function plots the error for each ensemble member and the error of the mean of the ensembles
