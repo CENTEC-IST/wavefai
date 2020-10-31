@@ -186,7 +186,7 @@ def qq_plot(filename, observation_data, ensemble_data, ens_names=[], ens_colors=
 			ensemble_data[i] = np.asarray(e)
 	if not ens_colors:
 		ens_colors = ['red' for k in ensemble_data]
-	
+
 	if format == 'html':
 		p = figure(plot_width=700, plot_height=600)
 		p.title.text = 'Click on legend entries to hide the corresponding lines'

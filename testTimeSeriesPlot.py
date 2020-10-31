@@ -24,25 +24,25 @@ f.close()
 
 # TIME SERIES FORECAST PLOT ==========================
 
-i=1 # Station 'ma_dt302_v'
-i1=154; i2=164
-for indi in range(i1,i2+1):
-	# Pressure
-	sdatec=time.strftime('%Y%m%d', time.gmtime(et[indi]))
-	time_series_forecast_plot(f"{OUTPUT_DIR}/TimeSeries_{indi:03}_{stations[i]}_AtmPressure.png",
-				oatmp[i,indi,:],
-				eatmp[i,:,indi,:],
-				et[indi], eft,
-				variable_name = 'AtmPressure',
-				text = f"{stations[i]}, cycle{sdatec}  {indi - i1 + 1}")
+# i=1 # Station 'ma_dt302_v'
+# i1=154; i2=164
+# for indi in range(i1,i2+1):
+# 	# Pressure
+# 	sdatec=time.strftime('%Y%m%d', time.gmtime(et[indi]))
+# 	time_series_forecast_plot(f"{OUTPUT_DIR}/TimeSeries_{indi:03}_{stations[i]}_AtmPressure.png",
+# 				oatmp[i,indi,:],
+# 				eatmp[i,:,indi,:],
+# 				et[indi], eft,
+# 				variable_name = 'AtmPressure',
+# 				text = f"{stations[i]}, cycle{sdatec}  {indi - i1 + 1}")
 
-	# WindSpeed
-	time_series_forecast_plot(f"{OUTPUT_DIR}/TimeSeries_{indi:03}_{stations[i]}_WindSpeed AnemC.png",
-				owspc[i,indi,:],
-				ewspc[i,:,indi,:],
-				et[indi], eft,
-				variable_name = 'WindSpeed AnemC',
-				text = f"{stations[i]}, cycle{sdatec}  {str(indi - i1 + 1)}")
+	# # WindSpeed
+	# time_series_forecast_plot(f"{OUTPUT_DIR}/TimeSeries_{indi:03}_{stations[i]}_WindSpeed AnemC.png",
+	# 			owspc[i,indi,:],
+	# 			ewspc[i,:,indi,:],
+	# 			et[indi], eft,
+	# 			variable_name = 'WindSpeed AnemC',
+	# 			text = f"{stations[i]}, cycle{sdatec}  {str(indi - i1 + 1)}")
 
 # convert -delay 100 -loop 0 TimeSeries_*_ma_dt302_v_AtmPressure.png TimeSeries_ma_dt302_v_AtmPressure.gif
 # convert -delay 100 -loop 0 TimeSeries_*_ma_dt302_v_WindSpeedAnemC.png TimeSeries_ma_dt302_v_WindSpeedAnemC.gif
