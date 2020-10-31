@@ -1,5 +1,6 @@
 import os
 import netCDF4 as nc
+import xarray
 import time
 
 from lib.plots import time_series_plot, time_series_forecast_plot
@@ -24,7 +25,7 @@ f.close()
 # TIME SERIES FORECAST PLOT ==========================
 
 i=1 # Station 'ma_dt302_v'
-i1=154; i2=223
+i1=154; i2=164
 for indi in range(i1,i2+1):
 	# Pressure
 	sdatec=time.strftime('%Y%m%d', time.gmtime(et[indi]))
@@ -50,7 +51,7 @@ for indi in range(i1,i2+1):
 d = xarray.open_dataset('ECMWFifs_and_Obsv_StationPos_2017111300_2020082300.nc')
 station = 0
 fc_time = 0
-time_series_plot(f'TimeSeriesObsvForecasts_{station}_D.png',
+time_series_plot(f'{OUTPUT_DIR}/TimeSeriesObsvForecasts_{station}_D.png',
 		d.omega_atmp[station,:,fc_time],
 		[d.ecmwf_atmp[station,0,:,fc_time]], d.date_time) # Make a list of
 

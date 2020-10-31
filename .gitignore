@@ -1,7 +1,13 @@
+# VIRTUALENV
+py_wav_env/*
+
+# IN/OUT FILES
 *.nc
 *.png
-*.txt
 *.html
+
 **/__pycache__
+
 real_output/*
 output/*
+

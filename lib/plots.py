@@ -53,7 +53,7 @@ def chiclet_plot(img_name, data, date_time, forecast_time, levels,
 	plt.axis('tight')
 	fig.text(0.000, 0.53, 'Forecast Time (Days)', va='center', rotation='vertical',size=sl)
 	plt.savefig(img_name, dpi=300, facecolor='w', edgecolor='w',orientation='portrait',
-			papertype=None, format=img_format,transparent=False, bbox_inches='tight', pad_inches=0.1)
+			format=img_format,transparent=False, bbox_inches='tight', pad_inches=0.1)
 	plt.close(fig)
 
 
@@ -99,7 +99,7 @@ def time_series_forecast_plot(img_name, observation_data, ensemble_members, cycl
 	plt.axis('tight')
 	plt.xlim(xmin=pred_time[0]-0.1,xmax=pred_time[-1]+0.1)
 	plt.savefig(img_name, dpi=300, facecolor='w', edgecolor='w',orientation='portrait',
-			papertype=None, format=img_format,transparent=False, bbox_inches='tight', pad_inches=0.1)
+			format=img_format,transparent=False, bbox_inches='tight', pad_inches=0.1)
 	plt.close(fig)
 
 
@@ -164,7 +164,7 @@ def time_series_plot(filename, observation_data, ensemble_data, date_time,
 		plt.tight_layout()
 		plt.axis('tight')
 		plt.savefig(filename, dpi=300, facecolor='w', edgecolor='w', orientation='portrait',
-				papertype=None, format=format,transparent=False, bbox_inches='tight', pad_inches=0.1)
+				format=format,transparent=False, bbox_inches='tight', pad_inches=0.1)
 		plt.close(fig)
 
 def qq_plot(filename, observation_data, ensemble_data, ens_names=[], ens_colors=[], format='png', sl=FONT_SIZE):
@@ -224,7 +224,7 @@ def qq_plot(filename, observation_data, ensemble_data, ens_names=[], ens_colors=
 		plt.tight_layout()
 # plt.axis('tight')
 		plt.grid(c='k', ls='-', alpha=0.3)
-		plt.savefig(filename, dpi=300, facecolor='w', edgecolor='w',orientation='portrait', papertype=None, format=format,transparent=False, bbox_inches='tight', pad_inches=0.1)
+		plt.savefig(filename, dpi=300, facecolor='w', edgecolor='w',orientation='portrait', format=format,transparent=False, bbox_inches='tight', pad_inches=0.1)
 		plt.close(fig1)
 
 
@@ -261,7 +261,7 @@ def errors_plot(img_name, error_data, error_data_mean, forecast_time, station_in
 	plt.grid(c='k', ls='-', alpha=0.3)
 	plt.xticks(np.array([1,5,10,15,20,30,40]))
 	plt.xlim(xmin = 0.9, xmax = forecast_time[-1])
-	plt.savefig(img_name, dpi=300, facecolor='w', edgecolor='w',orientation='portrait', papertype=None, format=img_format,transparent=False, bbox_inches='tight', pad_inches=0.1)
+	plt.savefig(img_name, dpi=300, facecolor='w', edgecolor='w',orientation='portrait', format=img_format,transparent=False, bbox_inches='tight', pad_inches=0.1)
 	plt.close(fig)
 
 
@@ -292,7 +292,7 @@ def errXftime(img_name, timeAhead, merr, ccol, mmark, llinst, Nvar, Nmetric, sl=
 	ax.set_xlim(left=0., right=(timeAhead/(3600.*24.)).max())
 	plt.locator_params(axis='y', nbins=7)
 	plt.locator_params(axis='x', nbins=7)
-	plt.savefig(img_name+Nmetric+'XFtime_'+Nvar+'.png', dpi=300, facecolor='w', edgecolor='w',orientation='portrait', papertype=None, format='png',transparent=False, bbox_inches='tight', pad_inches=0.1)
+	plt.savefig(img_name+Nmetric+'XFtime_'+Nvar+'.png', dpi=300, facecolor='w', edgecolor='w',orientation='portrait', format='png',transparent=False, bbox_inches='tight', pad_inches=0.1)
 	plt.close(fig)
 
 # Plot Error X Percentiles, for diff forecast times
@@ -317,7 +317,7 @@ def errXpercentile(img_name, nvepe, vepe, merr, ccol, mmark, llinst, Nvar, Nmetr
 	ax.set_ylabel(Nmetric,size=sl)
 	plt.locator_params(axis='y', nbins=7)
 	plt.locator_params(axis='x', nbins=7)
-	plt.savefig(img_name+Nmetric+'Xpercentile_'+Nvar+'.png', dpi=300, facecolor='w', edgecolor='w',orientation='portrait', papertype=None, format='png',transparent=False, bbox_inches='tight', pad_inches=0.1)
+	plt.savefig(img_name+Nmetric+'Xpercentile_'+Nvar+'.png', dpi=300, facecolor='w', edgecolor='w',orientation='portrait', format='png',transparent=False, bbox_inches='tight', pad_inches=0.1)
 	plt.close(fig)
 
 # Contourf of Error X forecast time X time
@@ -343,7 +343,7 @@ def cerrXftimetime(img_name, dates, timeAhead, merr, Nvar, Nmetric, sl=FONT_SIZE
 	plt.tight_layout()
 	plt.axis('tight')
 	fig.text(0.008, 0.53, 'Forecast Time (Days)', va='center', rotation='vertical',size=sl)
-	plt.savefig(img_name+Nmetric+'XFtimeTime_'+Nvar+'.png', dpi=300, facecolor='w', edgecolor='w',orientation='portrait', papertype=None, format='png',transparent=False, bbox_inches='tight', pad_inches=0.1)
+	plt.savefig(img_name+Nmetric+'XFtimeTime_'+Nvar+'.png', dpi=300, facecolor='w', edgecolor='w',orientation='portrait', format='png',transparent=False, bbox_inches='tight', pad_inches=0.1)
 	plt.close(fig)
 
 # Contourf of Error X Forecast Time X Quaniles
@@ -385,7 +385,7 @@ def errXftimeXQuantile(img_name, meval, nvepe, timeAhead, Nvar, Nmetric, sl=FONT
 	plt.axis('tight')
 	ax.xaxis.grid(True, zorder=1)
 	plt.grid(c='k', ls='-', alpha=0.3)
-	plt.savefig(img_name+Nmetric+'XForecastTimeXQuantile_'+Nvar+'.png', dpi=300, facecolor='w', edgecolor='w',orientation='portrait', papertype=None, format='png',transparent=False, bbox_inches='tight', pad_inches=0.1)
+	plt.savefig(img_name+Nmetric+'XForecastTimeXQuantile_'+Nvar+'.png', dpi=300, facecolor='w', edgecolor='w',orientation='portrait', format='png',transparent=False, bbox_inches='tight', pad_inches=0.1)
 	plt.close(fig)
 	del fig, ax,im2
 
@@ -426,7 +426,7 @@ def eqqplot(img_name, obs, model, ccol, mmark, llinst, Nvar, sl=FONT_SIZE):
 	plt.tight_layout()
 	# plt.axis('tight')
 	plt.grid(c='k', ls='-', alpha=0.3)
-	plt.savefig(img_name+'QQplot_'+Nvar+'.png', dpi=300, facecolor='w', edgecolor='w',orientation='portrait', papertype=None, format='png',transparent=False, bbox_inches='tight', pad_inches=0.1)
+	plt.savefig(img_name+'QQplot_'+Nvar+'.png', dpi=300, facecolor='w', edgecolor='w',orientation='portrait', format='png',transparent=False, bbox_inches='tight', pad_inches=0.1)
 	plt.close(fig)
 
 # Probability Density Function plots
@@ -459,7 +459,7 @@ def epdf(img_name, obs, model, ccol, mmark, llinst, Nvar, sl=FONT_SIZE):
 	plt.tight_layout()
 	plt.axis('tight')
 	plt.grid(c='k', ls='-', alpha=0.3)
-	plt.savefig(img_name+'PDF_'+Nvar+'.png', dpi=300, facecolor='w', edgecolor='w',orientation='portrait', papertype=None, format='png',transparent=False, bbox_inches='tight', pad_inches=0.1)
+	plt.savefig(img_name+'PDF_'+Nvar+'.png', dpi=300, facecolor='w', edgecolor='w',orientation='portrait', format='png',transparent=False, bbox_inches='tight', pad_inches=0.1)
 	plt.close(fig)
 
 # Probability Density Function plots - using log scale
@@ -495,7 +495,7 @@ def epdflogs(img_name, obs, model, ccol, mmark, llinst, Nvar, sl=FONT_SIZE):
 	plt.ylim(ymin = 0.001)
 	plt.ylim(ymax = 1.)
 	plt.grid(c='k', ls='-', alpha=0.3)
-	plt.savefig(img_name+'PDFlogs_'+Nvar+'.png', dpi=300, facecolor='w', edgecolor='w',orientation='portrait', papertype=None, format='png',transparent=False, bbox_inches='tight', pad_inches=0.1)
+	plt.savefig(img_name+'PDFlogs_'+Nvar+'.png', dpi=300, facecolor='w', edgecolor='w',orientation='portrait', format='png',transparent=False, bbox_inches='tight', pad_inches=0.1)
 	plt.close(fig)
 
 # Error X Latitude
@@ -520,5 +520,5 @@ def errXlat(img_name, lat, merr, ccol, mmark, llinst, Nvar, Nmetric, latick, sl=
 	ax.set_xlim(left=np.nanmin(lat), right=np.nanmax(lat))
 	plt.grid(c='k', ls='-', alpha=0.3)
 	plt.xticks(latick)
-	plt.savefig(img_name+Nmetric+'XLatitude_'+Nvar+'.png', dpi=300, facecolor='w', edgecolor='w',orientation='portrait', papertype=None, format='png',transparent=False, bbox_inches='tight', pad_inches=0.1)
+	plt.savefig(img_name+Nmetric+'XLatitude_'+Nvar+'.png', dpi=300, facecolor='w', edgecolor='w',orientation='portrait', format='png',transparent=False, bbox_inches='tight', pad_inches=0.1)
 	plt.close(fig)
