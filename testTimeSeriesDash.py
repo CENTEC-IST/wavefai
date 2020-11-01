@@ -15,9 +15,11 @@ DATA_FILE = 'ECMWFifs_and_Obsv_StationPos_2017111300_2020082300.nc'
 data = xarray.open_dataset(DATA_FILE)
 
 stations = data.stationID.data
-datetime = data.date_time.data
+datetime = [str(d) for d in data.cycletime.data]
 
 variables = sorted([d for d in data.data_vars if len(data[d].shape) >1])
+obs_variables = variables[len(variables)//2:]
+ens_variables = variables[:len(variables)//2]
 
 # ========================
 #	  DASH APP SETUP
@@ -40,7 +42,7 @@ app.layout = html.Div([
 		html.Div(children='Variable: '),
 		dcc.Dropdown(
 			id='variable',
-			options=[{'label':v[v.index('_')+1:], 'value':i} for i, v in enumerate(variables[:(len(variables)//2)])],
+			options=[{'label':v[v.index('_')+1:], 'value':i} for i, v in enumerate(obs_variables)],
 			value=0, placeholder='Select variable...'
 		)
 	], style={'width':'33%', 'display':'inline-block'}),
@@ -55,7 +57,6 @@ app.layout = html.Div([
 
 	dcc.Graph(id='timeseries-graph'),
 
-	# TODO make a div with the slider to show the actual forecast being selected
 	html.Div(id='display-forecast-time'),
 	dcc.Slider(
 		id='forecast-time-slider',
@@ -80,17 +81,17 @@ def update_graph(station, ensemble, variable, forecast_time):
 	fig = go.Figure()
 	fig.add_trace(go.Scatter(
 			x = datetime,
-			y = data.omega_atmp[station, :, forecast_time].data,
-			mode = 'lines', name = 'Observed'))
+			y = data[obs_variables[variable]][station, :, forecast_time].data,
+			mode = 'lines+markers', name = 'Observed'))
 
 	for e in ensemble:
 		fig.add_trace(go.Scatter(
 				x = datetime,
-				y = data.ecmwf_atmp[station, e, :, forecast_time].data,
+				y = data[ens_variables[variable]][station, e, :, forecast_time].data,
 				mode = 'lines', name = f'Ensemble {e+1}'))
 	var_name = variables[variable][variables[variable].index('_')+1:]
 	fig.update_xaxes(title = 'Tempo')
-	fig.update_yaxes(title = var_name)
+	fig.update_yaxes(title = f"{var_name} ({data[obs_variables[variable]].units})")
 
 	return fig
 
@@ -98,7 +99,8 @@ def update_graph(station, ensemble, variable, forecast_time):
 		Output('display-forecast-time', 'children'),
 		[Input('forecast-time-slider', 'value')])
 def update_forecast_time_display(forecast_time):
-	return f'Forecast time is {forecast_time} {data.forecast_time[forecast_time].data}'
+	day_hour = [(int(x//3600//24), int(x//3600%24)) for x in data.forecast_time.data]
+	return f"Forecast time: {'%d dias %d horas' % day_hour[forecast_time]}. Indice {forecast_time}."
 
 
 if __name__ == '__main__':
