@@ -1,3 +1,4 @@
+import numpy as np
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
@@ -79,21 +80,34 @@ app.layout = html.Div([
 		Input('forecast-time-slider', 'value')])
 def update_graph(station, ensemble, variable, forecast_time):
 	fig = go.Figure()
-	fig.add_trace(go.Scatter(
-			x = datetime,
-			y = data[obs_variables[variable]][station, :, forecast_time].data,
-			mode = 'lines+markers', name = 'Observed'))
+
+	qobs = np.nanpercentile(data[obs_variables[variable]][station, :, forecast_time], range(1, 100))
+
+	amin = np.inf
+	amax = -np.inf
 
 	for e in ensemble:
-		fig.add_trace(go.Scatter(
-				x = datetime,
-				y = data[ens_variables[variable]][station, e, :, forecast_time].data,
-				mode = 'lines', name = f'Ensemble {e+1}'))
-	var_name = variables[variable][variables[variable].index('_')+1:]
-	fig.update_xaxes(title = 'Tempo', fixedrange=True)
-	fig.update_yaxes(title = f"{var_name} ({data[obs_variables[variable]].units})")
+		qens = np.nanpercentile(data[ens_variables[variable]][station, e, :, forecast_time].data, range(1, 100))
+		if np.nanmin(qens) < amin: amin = np.nanmin(qens)
+		if np.nanmax(qens) > amax: amax = np.nanmax(qens)
 
-	fig.update_layout(title='Time Series Plot')
+		fig.add_trace(go.Scatter(
+				x = qobs,
+				y = qens,
+				mode = 'lines+markers', name = f'Ensemble {e+1}'))
+	var_name = variables[variable][variables[variable].index('_')+1:]
+
+	# Add line
+	fig.add_trace(go.Scatter(
+			x = qobs,
+			y = qobs,
+			mode = 'lines', name = '--',
+			marker_color='#000'))
+
+	fig.update_xaxes(title = 'Measurements', fixedrange=True)
+	fig.update_yaxes(title = 'Model', fixedrange=True)
+
+	fig.update_layout(title='QQ Plot')
 
 	return fig
 

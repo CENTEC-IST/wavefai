@@ -187,6 +187,11 @@ def qq_plot(filename, observation_data, ensemble_data, ens_names=[], ens_colors=
 	if not ens_colors:
 		ens_colors = ['red' for k in ensemble_data]
 
+	a=np.nanmin(ensemble_data)
+	b=np.nanmax(ensemble_data)
+	px=np.linspace(a,b,100)
+	aux=np.linspace(a-0.01*np.abs(b-a),b+0.01*np.abs(b-a),np.arange(1,99,1).shape[0])
+
 	if format == 'html':
 		p = figure(plot_width=700, plot_height=600)
 		p.title.text = 'Click on legend entries to hide the corresponding lines'
@@ -200,10 +205,6 @@ def qq_plot(filename, observation_data, ensemble_data, ens_names=[], ens_colors=
 		output_file(filename)
 		# show(p)
 	else:
-		a=np.nanmin(ensemble_data)
-		b=np.nanmax(ensemble_data)
-		px=np.linspace(a,b,100)
-		aux=np.linspace(a-0.01*np.abs(b-a),b+0.01*np.abs(b-a),np.arange(1,99,1).shape[0])
 		fig1 = plt.figure(1,figsize=(8,6))
 		ax1 = fig1.add_subplot(111)
 
