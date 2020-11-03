@@ -2,10 +2,12 @@ import numpy as np
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
-from dash.dependencies import Input, Output
+from dash.dependencies import Input, Output, State
 import plotly.graph_objects as go
 
 import xarray
+
+FONT = 'Courier New'
 
 # ========================
 #	   READING DATA
@@ -59,18 +61,34 @@ app.layout = html.Div([
 	dcc.Graph(id='timeseries-graph'),
 
 	html.Div(id='display-forecast-time'),
-	dcc.Slider(
-		id='forecast-time-slider',
-		min=0,
-		max=data.forecast_time.size-1,
-		value=0,
-		# this creates marks only when the number of seconds represents a full day
-		# i*4 represents the index of that time so that it correctly selects this value
-		marks={i*4: str(int(x/(3600*24))) for i,x in enumerate(data.forecast_time.isel({'forecast_time':slice(0,180,4)}))},
-		step=1
-	)
 
-])
+	html.Div([
+		html.Div(children='Days:', style={'display':'inline-block', 'vertical-align':'50%'}),
+		html.Div([dcc.Slider(
+			id='forecast-time-slider',
+			min=0,
+			max=data.forecast_time.size-1,
+			value=0, # this will be overwritten on button callback
+			# this creates marks only when the number of seconds represents a full day
+			# i*4 represents the index of that time so that it correctly selects this value
+			marks={i*4: str(int(x/(3600*24))) for i,x in enumerate(data.forecast_time.isel({'forecast_time':slice(0,180,4)}))},
+			step=1
+			)], style={'width':'90%', 'display':'inline-block'})
+	]),
+
+	html.Div([
+		html.Div(children='Step:', style={'display':'inline-block', 'padding-right':'15px'}),
+		html.Button(
+			id='step-forecast-backward',
+			children='⮜',
+			style={'width':'40px', 'height':'25px', 'display':'inline-block', 'border-block-style':'solid', 'border-radius':'4px'}),
+		html.Button(
+			id='step-forecast-forward',
+			children='⮞',
+			style={'width':'40px', 'height':'25px', 'display':'inline-block', 'border-block-style':'solid', 'border-radius':'4px'})
+	])
+
+], style={'font-family':FONT})
 
 @app.callback(
 		Output('timeseries-graph', 'figure'),
@@ -101,7 +119,7 @@ def update_graph(station, ensemble, variable, forecast_time):
 	fig.add_trace(go.Scatter(
 			x = qobs,
 			y = qobs,
-			mode = 'lines', name = '--',
+			mode = 'lines', name = 'TRUTH',
 			marker_color='#000'))
 
 	fig.update_xaxes(title = 'Measurements', fixedrange=True)
@@ -117,6 +135,20 @@ def update_graph(station, ensemble, variable, forecast_time):
 def update_forecast_time_display(forecast_time):
 	day_hour = [(int(x//3600//24), int(x//3600%24)) for x in data.forecast_time.data]
 	return f"Forecast time: {'%d dias %d horas' % day_hour[forecast_time]}. Indice {forecast_time}."
+
+@app.callback(
+		Output('forecast-time-slider', 'value'),
+		[Input('step-forecast-forward', 'n_clicks'),
+		Input('step-forecast-backward', 'n_clicks')],
+		[State('forecast-time-slider', 'value')])
+def step_forecast(forward_clicks, backward_clicks, val):
+	cid = [p['prop_id'] for p in dash.callback_context.triggered][0]
+	if 'step-forecast-forward' in cid:
+		return val + 1 if val < data.forecast_time.size else val
+	elif 'step-forecast-backward' in cid:
+		return val - 1 if val > 0 else val
+	else:
+		return 0
 
 
 if __name__ == '__main__':
