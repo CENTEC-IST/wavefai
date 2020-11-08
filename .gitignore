@@ -1,5 +1,5 @@
 # VIRTUALENV
-py_wav_env/*
+wavefai_env/*
 
 # IN/OUT FILES
 *.nc
@@ -10,4 +10,5 @@ py_wav_env/*
 
 real_output/*
 output/*
+data/*
 

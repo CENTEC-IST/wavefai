@@ -11,7 +11,7 @@ if not os.path.exists(OUTPUT_DIR):
 	os.makedirs(OUTPUT_DIR)
 
 
-f=nc.Dataset('ECMWFifs_and_Obsv_StationPos_2017111300_2020082300.nc')
+f=nc.Dataset('data/ECMWFifs_and_Obsv_StationPos_2017111300_2020082300.nc')
 et=f.variables['cycletime'][:]
 eft=f.variables['forecast_time'][:]
 stations=f.variables['stationID'][:]
@@ -48,7 +48,7 @@ for indi in range(i1,i2+1):
 # convert -delay 100 -loop 0 TimeSeries_*_ma_dt302_v_WindSpeedAnemC.png TimeSeries_ma_dt302_v_WindSpeedAnemC.gif
 
 # TIME SERIES PLOT ==========================
-d = xarray.open_dataset('ECMWFifs_and_Obsv_StationPos_2017111300_2020082300.nc')
+d = xarray.open_dataset('data/ECMWFifs_and_Obsv_StationPos_2017111300_2020082300.nc')
 station = 0
 fc_time = 0
 time_series_plot(f'{OUTPUT_DIR}/TimeSeriesObsvForecasts_{station}_D.png',

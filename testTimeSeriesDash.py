@@ -6,11 +6,13 @@ import plotly.graph_objects as go
 
 import xarray
 
+FONT = 'Courier New'
+
 # ========================
 #	   READING DATA
 # ========================
 
-DATA_FILE = 'ECMWFifs_and_Obsv_StationPos_2017111300_2020082300.nc'
+DATA_FILE = 'data/ECMWFifs_and_Obsv_StationPos_2017111300_2020082300.nc'
 
 data = xarray.open_dataset(DATA_FILE)
 
@@ -85,7 +87,7 @@ app.layout = html.Div([
 			style={'width':'40px', 'height':'25px', 'display':'inline-block', 'border-block-style':'solid', 'border-radius':'4px'})
 	])
 
-], style={'font-family':'Courier New'})
+], style={'font-family':FONT})
 
 @app.callback(
 		Output('timeseries-graph', 'figure'),
@@ -133,6 +135,7 @@ def step_forecast(forward_clicks, backward_clicks, val):
 		return val - 1 if val > 0 else val
 	else:
 		return 0
+
 
 if __name__ == '__main__':
 	app.run_server(host='0.0.0.0', port=8888, debug=True)
