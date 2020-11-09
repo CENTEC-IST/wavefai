@@ -1,5 +1,4 @@
 import dash
-import numpy as np
 import dash_core_components as dcc
 import dash_html_components as html
 from dash.dependencies import Input, Output, State
@@ -13,28 +12,16 @@ FONT = 'Courier New'
 #	   READING DATA
 # ========================
 
-GWES_DATA = 'data/buoys/GWES_selectionPointNearest_20190925_20200701.nc'
-WW3_DATA = 'data/buoys/WW3_selectionPointNearest_20190925_20200701.nc'
+DATA_FILE = 'data/ECMWFifs_and_Obsv_StationPos_2017111300_2020082300.nc'
 
-OBSERVED_DATA = 'data/buoys/NDBC_selection_deepWaters_20190925_20200701.nc'
+data = xarray.open_dataset(DATA_FILE)
 
-gwes_data = xarray.open_dataset(GWES_DATA)
-ww3_data = xarray.open_dataset(WW3_DATA)
-obs_data = xarray.open_dataset(OBSERVED_DATA)
+stations = data.stationID.data # list of station names
+datetime = [str(d) for d in data.cycletime.data] # list of datetime strings
 
-stations = gwes_data.buoyID.data # list of station names
-# datetime = [str(d) for d in gwes.data.cycletime.data] # list of datetime strings
-
-variables = sorted([d for d in gwes_data.data_vars if len(gwes_data[d].shape) >1]) # list of data variables names
-# obs_variables = variables[len(variables)//2:] # names of observed variables
-# ens_variables = variables[:len(variables)//2] # names of ensemble variables
-
-fctime_name = 'fctime'
-
-# put multiple ensembles here
-ensmembers= {  'GWES' :gwes_data,
-				'WW3' :ww3_data
-			}
+variables = sorted([d for d in data.data_vars if len(data[d].shape) >1]) # list of data variables names
+obs_variables = variables[len(variables)//2:] # names of observed variables
+ens_variables = variables[:len(variables)//2] # names of ensemble variables
 
 # ========================
 #	  DASH APP SETUP
@@ -43,7 +30,7 @@ ensmembers= {  'GWES' :gwes_data,
 app = dash.Dash(__name__)
 
 app.layout = html.Div([
-	html.H2(children = 'Ensemble Comparison', style={'text-align':'center'}),
+	html.H2(children = DATA_FILE, style={'text-align':'center'}),
 
 	html.Div([
 		html.Div(children='Station:'),
@@ -57,7 +44,7 @@ app.layout = html.Div([
 		html.Div(children='Variable: '),
 		dcc.Dropdown(
 			id='variable',
-			options=[{'label':v, 'value':i} for i, v in enumerate(variables)],
+			options=[{'label':v[v.index('_')+1:], 'value':i} for i, v in enumerate(obs_variables)],
 			value=0, placeholder='Select variable...'
 		)
 	], style={'width':'33%', 'display':'inline-block'}),
@@ -65,8 +52,8 @@ app.layout = html.Div([
 		html.Div(children='Ensemble: '),
 		dcc.Dropdown(
 			id='ensemble',
-			options=[{'label':ens, 'value':ens} for ens in ensmembers],
-			value=['GWES'], multi=True, placeholder='Select ensembles...'
+			options=[{'label':v, 'value':i} for i, v in enumerate(data.ensmember.data)],
+			value=[0], multi=True, placeholder='Select ensembles...'
 		)
 	], style={'width':'33%', 'display':'inline-block'}),
 
@@ -79,11 +66,11 @@ app.layout = html.Div([
 		html.Div([dcc.Slider(
 			id='forecast-time-slider',
 			min=0,
-			max=ensmembers[list(ensmembers.keys())[0]][fctime_name].size-1,
+			max=data.forecast_time.size-1,
 			value=0, # this will be overwritten on button callback
 			# this creates marks only when the number of seconds represents a full day
 			# i*4 represents the index of that time so that it correctly selects this value
-			marks={i*4: str(int(x/(3600*24))) for i,x in enumerate(ensmembers[list(ensmembers.keys())[0]][fctime_name].isel({fctime_name:slice(0,180,4)}))},
+			marks={i*4: str(int(x/(3600*24))) for i,x in enumerate(data.forecast_time.isel({'forecast_time':slice(0,180,4)}))},
 			step=1
 			)], style={'width':'90%', 'display':'inline-block'})
 	]),
@@ -110,29 +97,19 @@ app.layout = html.Div([
 		Input('forecast-time-slider', 'value')])
 def update_graph(station, ensemble, variable, forecast_time):
 	fig = go.Figure()
-
-	if (variables[variable] in obs_data):
-		# grab the forecast time from one of the ensemblers
-		fc = ensmembers[list(ensmembers.keys())[0]][fctime_name][forecast_time]
-		actual_time = (ensmembers[list(ensmembers.keys())[0]].datetime + fc/3600/24).data
-		tt = obs_data.time[np.in1d(obs_data.datetime, actual_time)]
-		fig.add_trace(go.Scatter(
-				x = [str(t) for t in tt.data],
-				y = obs_data[variables[variable]][station, :].data,
-				mode = 'lines+markers', name = 'Observed'))
+	fig.add_trace(go.Scatter(
+			x = datetime,
+			y = data[obs_variables[variable]][station, :, forecast_time].data,
+			mode = 'lines+markers', name = 'Observed'))
 
 	for e in ensemble:
-		if len(ensmembers[e][variables[variable]].shape) == 4: # if there are multiple ensembleMembers
-			y = np.mean(ensmembers[e][variables[variable]][station, :, :, forecast_time], axis=0).data
-		else:
-			y = ensmembers[e][variables[variable]][station, :, forecast_time].data
 		fig.add_trace(go.Scatter(
-				x = [str(t) for t in ensmembers[e].time.data],
-				y = y,
-				mode = 'lines', name = f'{e}'))
-	var_name = variables[variable]
+				x = datetime,
+				y = data[ens_variables[variable]][station, e, :, forecast_time].data,
+				mode = 'lines', name = f'Ensemble {e+1}'))
+	var_name = variables[variable][variables[variable].index('_')+1:]
 	fig.update_xaxes(title = 'Tempo', rangeslider_visible=True)
-	fig.update_yaxes(title = f"{var_name}")
+	fig.update_yaxes(title = f"{var_name} ({data[obs_variables[variable]].units})")
 
 	fig.update_layout(title='Time Series Plot')
 
@@ -142,7 +119,7 @@ def update_graph(station, ensemble, variable, forecast_time):
 		Output('display-forecast-time', 'children'),
 		[Input('forecast-time-slider', 'value')])
 def update_forecast_time_display(forecast_time):
-	day_hour = [(int(x//3600//24), int(x//3600%24)) for x in ensmembers[list(ensmembers.keys())[0]][fctime_name].data]
+	day_hour = [(int(x//3600//24), int(x//3600%24)) for x in data.forecast_time.data]
 	return f"Forecast time: {'%d dias %d horas' % day_hour[forecast_time]}. Indice {forecast_time}."
 
 @app.callback(
@@ -153,7 +130,7 @@ def update_forecast_time_display(forecast_time):
 def step_forecast(forward_clicks, backward_clicks, val):
 	cid = [p['prop_id'] for p in dash.callback_context.triggered][0]
 	if 'step-forecast-forward' in cid:
-		return val + 1 if val < ensmembers[list(ensmembers.keys())[0]][fctime_name].size else val
+		return val + 1 if val < data.forecast_time.size else val
 	elif 'step-forecast-backward' in cid:
 		return val - 1 if val > 0 else val
 	else:
