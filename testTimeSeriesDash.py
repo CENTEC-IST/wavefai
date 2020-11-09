@@ -83,7 +83,7 @@ app.layout = html.Div([
 			value=0, # this will be overwritten on button callback
 			# this creates marks only when the number of seconds represents a full day
 			# i*4 represents the index of that time so that it correctly selects this value
-			marks={i*4: str(int(x/(3600*24))) for i,x in enumerate(ensmembers[list(ensmembers.keys())[0]][fctime_name].isel({fctime_name:slice(0,180,4)}))},
+			marks={i*8: str(int(x/(3600*24))) for i,x in enumerate(ensmembers[list(ensmembers.keys())[0]][fctime_name].isel({fctime_name:slice(0,180,8)}))},
 			step=1
 			)], style={'width':'90%', 'display':'inline-block'})
 	]),
@@ -115,10 +115,10 @@ def update_graph(station, ensemble, variable, forecast_time):
 		# grab the forecast time from one of the ensemblers
 		fc = ensmembers[list(ensmembers.keys())[0]][fctime_name][forecast_time]
 		actual_time = (ensmembers[list(ensmembers.keys())[0]].datetime + fc/3600/24).data
-		tt = obs_data.time[np.in1d(obs_data.datetime, actual_time)]
+		mask = np.in1d(obs_data.datetime, actual_time)
 		fig.add_trace(go.Scatter(
-				x = [str(t) for t in tt.data],
-				y = obs_data[variables[variable]][station, :].data,
+				x = [str(t) for t in obs_data.time[mask].data],
+				y = obs_data[variables[variable]][station, :][mask].data,
 				mode = 'lines+markers', name = 'Observed'))
 
 	for e in ensemble:
@@ -134,7 +134,7 @@ def update_graph(station, ensemble, variable, forecast_time):
 	fig.update_xaxes(title = 'Tempo', rangeslider_visible=True)
 	fig.update_yaxes(title = f"{var_name}")
 
-	fig.update_layout(title='Time Series Plot')
+	fig.update_layout(title='Time Series Plot', uirevision=True)
 
 	return fig
 
