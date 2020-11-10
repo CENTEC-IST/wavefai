@@ -11,7 +11,7 @@ if not os.path.exists(OUTPUT_DIR):
 	os.makedirs(OUTPUT_DIR)
 
 
-f=nc.Dataset('data/ECMWFifs_and_Obsv_StationPos_2017111300_2020082300.nc')
+f=nc.Dataset('../data/ECMWFifs_and_Obsv_StationPos_2017111300_2020082300.nc')
 datm=f.variables['date_time'][:]
 eft=f.variables['forecast_time'][:]
 stations=f.variables['stationID'][:]

@@ -11,9 +11,9 @@ if not os.path.exists(OUTPUT_DIR):
 	os.makedirs(OUTPUT_DIR)
 
 
-xdata = xarray.open_dataset('data/ECMWFifs_and_Obsv_StationPos_2017111300_2020082300.nc')
+xdata = xarray.open_dataset('../data/ECMWFifs_and_Obsv_StationPos_2017111300_2020082300.nc')
 
-# f=nc.Dataset('data/ECMWFifs_and_Obsv_StationPos_2017111300_2020082300.nc')
+# f=nc.Dataset('../data/ECMWFifs_and_Obsv_StationPos_2017111300_2020082300.nc')
 datm=xdata.date_time
 et=xdata.cycletime
 eft=xdata.forecast_time
