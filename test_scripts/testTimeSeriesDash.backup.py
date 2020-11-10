@@ -12,7 +12,7 @@ FONT = 'Courier New'
 #	   READING DATA
 # ========================
 
-DATA_FILE = '../data/ECMWFifs_and_Obsv_StationPos_2017111300_2020082300.nc'
+DATA_FILE = 'data/ECMWFifs_and_Obsv_StationPos_2017111300_2020082300.nc'
 
 data = xarray.open_dataset(DATA_FILE)
 

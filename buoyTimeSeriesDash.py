@@ -126,12 +126,11 @@ def update_graph(station, ensemble, variable, forecast_time):
 		else:
 			y = ensmembers[e][variables[variable]][station, :, forecast_time].data
 		fig.add_trace(go.Scatter(
-				x = [str(t) for t in ensmembers[e].time.data], # TODO adjust here for the forecast time (it must move time too)
+				x = [str(t) for t in ensmembers[e].time.data],
 				y = y,
-				mode = 'lines', name = f'{e}'))
-	var_name = variables[variable]
+				mode = 'lines', name = e))
 	fig.update_xaxes(title = 'Tempo', rangeslider_visible=True)
-	fig.update_yaxes(title = f"{var_name}")
+	fig.update_yaxes(title = f"{variables[variable]}")
 
 	fig.update_layout(title='Time Series Plot', uirevision=True)
 

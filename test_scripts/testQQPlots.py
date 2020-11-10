@@ -10,7 +10,7 @@ if not os.path.exists(OUTPUT_DIR):
 
 scolors = ['c','royalblue','steelblue','blue','darkblue','cyan']
 
-d = xarray.open_dataset('../data/ECMWFifs_and_Obsv_StationPos_2017111300_2020082300.nc')
+d = xarray.open_dataset('data/ECMWFifs_and_Obsv_StationPos_2017111300_2020082300.nc')
 
 station = 0
 forecast_index = 10
