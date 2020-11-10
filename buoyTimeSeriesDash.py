@@ -112,9 +112,8 @@ def update_graph(station, ensemble, variable, forecast_time):
 	fig = go.Figure()
 
 	if (variables[variable] in obs_data):
-		# grab the forecast time from one of the ensemblers
-		fc = ensmembers[list(ensmembers.keys())[0]][fctime_name][forecast_time]
-		actual_time = (ensmembers[list(ensmembers.keys())[0]].datetime + fc/3600/24).data
+		# grab the time from the ensembles
+		actual_time = ensmembers[list(ensmembers.keys())[0]].datetime.data
 		mask = np.in1d(obs_data.datetime, actual_time)
 		fig.add_trace(go.Scatter(
 				x = [str(t) for t in obs_data.time[mask].data],
@@ -127,7 +126,7 @@ def update_graph(station, ensemble, variable, forecast_time):
 		else:
 			y = ensmembers[e][variables[variable]][station, :, forecast_time].data
 		fig.add_trace(go.Scatter(
-				x = [str(t) for t in ensmembers[e].time.data],
+				x = [str(t) for t in ensmembers[e].time.data], # TODO adjust here for the forecast time (it must move time too)
 				y = y,
 				mode = 'lines', name = f'{e}'))
 	var_name = variables[variable]
@@ -153,7 +152,7 @@ def update_forecast_time_display(forecast_time):
 def step_forecast(forward_clicks, backward_clicks, val):
 	cid = [p['prop_id'] for p in dash.callback_context.triggered][0]
 	if 'step-forecast-forward' in cid:
-		return val + 1 if val < ensmembers[list(ensmembers.keys())[0]][fctime_name].size else val
+		return val + 1 if val + 1 < ensmembers[list(ensmembers.keys())[0]][fctime_name].size else val
 	elif 'step-forecast-backward' in cid:
 		return val - 1 if val > 0 else val
 	else:
