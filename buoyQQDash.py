@@ -13,23 +13,33 @@ FONT = 'Courier New'
 #	   READING DATA
 # ========================
 
-GWES_DATA = 'data/buoys/GWES_selectionPointNearest_20190925_20200701.nc'
-WW3_DATA = 'data/buoys/WW3_selectionPointNearest_20190925_20200701.nc'
+# nearest
+# GFS_DATA = 'data/buoys/GFS_selectionPointNearest_20190925_20200701.nc'
+# GWES_DATA = 'data/buoys/GWES_selectionPointNearest_20190925_20200701.nc'
+# WW3_DATA = 'data/buoys/WW3_selectionPointNearest_20190925_20200701.nc'
+
+# average
+GFS_DATA = 'data/buoys/GFS_selectionPointAver_20190925_20200701.nc'
+GWES_DATA = 'data/buoys/GWES_selectionPointAver_20190925_20200701.nc'
+WW3_DATA = 'data/buoys/WW3_selectionPointAver_20190925_20200701.nc'
 
 OBSERVED_DATA = 'data/buoys/NDBC_selection_deepWaters_20190925_20200701.nc'
 
+gfs_data = xarray.open_dataset(GFS_DATA)
 gwes_data = xarray.open_dataset(GWES_DATA)
 ww3_data = xarray.open_dataset(WW3_DATA)
 obs_data = xarray.open_dataset(OBSERVED_DATA)
 
 stations = gwes_data.buoyID.data # list of station names
 
-variables = sorted([d for d in gwes_data.data_vars if len(gwes_data[d].shape) >1]) # list of data variables names
+# variables = sorted([d for d in gwes_data.data_vars if len(gwes_data[d].shape) >1]) # list of data variables names
+variables = ['Dp', 'Hs', 'Tp', 'WSPD']
 
 fctime_name = 'fctime'
 
 # put multiple ensembles here
-ensmembers= {  'GWES' :gwes_data,
+ensmembers= {   'GFS' :gfs_data,
+				'GWES':gwes_data,
 				'WW3' :ww3_data
 			}
 
@@ -105,27 +115,30 @@ app.layout = html.Div([
 		Input('ensemble', 'value'),
 		Input('variable', 'value'),
 		Input('forecast-time-slider', 'value')])
-def update_graph(station, ensemble, variable, forecast_time):
+def update_graph(station, ensemble, var, forecast_time):
 	fig = go.Figure()
 
-	if (variables[variable] in obs_data):
+	if (variables[var] in obs_data):
 		# grab the time from the ensembles
 		actual_time = ensmembers[list(ensmembers.keys())[0]].datetime.data
 		mask = np.in1d(obs_data.datetime, actual_time)
-		qobs = np.nanpercentile(obs_data[variables[variable]][station, :][mask].data, range(1, 100))
+		qobs = np.nanpercentile(obs_data[variables[var]][station, :][mask].data, range(1, 100))
 
 		for e in ensemble:
-			if len(ensmembers[e][variables[variable]].shape) == 4: # if there are multiple ensembleMembers
-				qensdata = np.mean(ensmembers[e][variables[variable]][station, :, :, forecast_time], axis=0).data
-			else:
-				qensdata = ensmembers[e][variables[variable]][station, :, forecast_time].data
-			qens = np.nanpercentile(qensdata, range(1, 100))
+			if variables[var] == 'WSPD' and 'U10m' in ensmembers[e] and 'V10m' in ensmembers[e]:
+				qensdata = np.sqrt(ensmembers[e]['U10m'][station, :, forecast_time].data**2 + ensmembers[e]['V10m'][station, :, forecast_time].data**2)
+				qens = np.nanpercentile(qensdata, range(1, 100))
 
-			fig.add_trace(go.Scatter(
-					x = qobs,
-					y = qens,
-					mode = 'lines+markers', name = e))
+				fig.add_trace(go.Scatter( x = qobs, y = qens, mode = 'lines+markers', name = e))
 
+			elif variables[var] in ensmembers[e]:
+				if len(ensmembers[e][variables[var]].shape) == 4: # if there are multiple ensembleMembers
+					qensdata = np.mean(ensmembers[e][variables[var]][station, :, :, forecast_time], axis=0).data
+				else:
+					qensdata = ensmembers[e][variables[var]][station, :, forecast_time].data
+				qens = np.nanpercentile(qensdata, range(1, 100))
+
+				fig.add_trace(go.Scatter( x = qobs, y = qens, mode = 'lines+markers', name = e))
 
 		# Draw Truth line
 		fig.add_trace(go.Scatter(
