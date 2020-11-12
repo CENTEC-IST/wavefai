@@ -120,7 +120,8 @@ def update_graph(station, ensemble, var, forecast_time):
 
 	if (variables[var] in obs_data):
 		# grab the time from the ensembles
-		actual_time = ensmembers[list(ensmembers.keys())[0]].datetime.data
+		fc = ensmembers[list(ensmembers.keys())[0]][fctime_name][forecast_time]
+		actual_time = (ensmembers[list(ensmembers.keys())[0]].datetime + fc/3600/24).data
 		mask = np.in1d(obs_data.datetime, actual_time)
 		qobs = np.nanpercentile(obs_data[variables[var]][station, :][mask].data, range(1, 100))
 
