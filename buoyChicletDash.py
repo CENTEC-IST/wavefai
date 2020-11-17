@@ -61,18 +61,32 @@ ensmembers= {   'GFS' :gfs_data,
 # define functions to get which data to plot (a function that receives data (xarray), variable name and station and returns the data to plot)
 data_to_plot = {}
 
+def calc_diff(var, st, var_data, data):
+	'''Calculate the difference between a given variable and station in a dataset and the observed data, for each forecast time'''
+	tsize = var_data.shape[0]
+	dd = np.empty(var_data.shape)
+	for fc in range(data[fctime_name].size):
+		at = data.time + np.timedelta64(int(data[fctime_name][fc]), 's')
+		mask = np.in1d(obs_data.time, at)
+		obs_masked = obs_data[var][st,:][mask].data
+		# TODO here we cut the data to obs_masked.size (this may not correspond to the data that isnt seen in obs_masked)
+		diff_data = obs_masked - var_data[:obs_masked.size,fc].data
+		dd[:,fc] = np.append(diff_data, np.zeros(tsize - diff_data.size) + np.nan)
+	return dd
+
 for k in ensmembers:
 	if k != 'GFS': # TODO FIXME
 		dx = ensmembers[k]
 		if hasattr(ensmembers[k], 'nensembles'): # if there are multiple ensembleMembers
 			# mean of the ensembles, if variable does not exits the function returns None
-			data_to_plot[f"{k}"] = lambda var, st, data=dx: np.mean(data[variables[var]][st, 1:, :, :], axis=0).data.T if variables[var] in data else None
+			data_to_plot[f"{k}"] = lambda var, st, data=dx: np.mean(data[var][st, 1:, :, :], axis=0).data.T if var in data else None
 			# difference from observed data
-			# TODO Headache incoming...
-			# data_to_plot[f"Difference (Observed - {k})"] = lambda data, var, st: np.mean(ensmembers[k][variables[var]][st, 1:, :, :], axis=0).data.T - data[obs_variables[var]][st, :, :].data.T
+			data_to_plot[f"Difference (Observed - {k})"] = lambda var, st, data=dx: calc_diff(var, st, np.mean(data[var][st, 1:, :, :], axis=0), data).T if var in data else None
 		else:
 			# specific ensemble, if variable does not exits the function returns None
-			data_to_plot[f"{k}"] = lambda var, st, data=dx: data[variables[var]][st, :, :].data.T if variables[var] in data else None
+			data_to_plot[f"{k}"] = lambda var, st, data=dx: data[var][st, :, :].data.T if var in data else None
+			# difference from observed data
+			data_to_plot[f"Difference (Observed - {k})"] = lambda var, st, data=dx: calc_diff(var, st, data[var][st, :, :], data).T if var in data else None
 
 # ========================
 #	  DASH APP SETUP
@@ -97,7 +111,7 @@ app.layout = html.Div([
 		dcc.Dropdown(
 			id='variable',
 			options=[{'label':v, 'value':i} for i, v in enumerate(variables)],
-			value=0, placeholder='Select variable...',
+			value=1, placeholder='Select variable...',
 			clearable = False
 		)
 	], style={'width':'20%', 'display':'inline-block'}),
@@ -147,7 +161,7 @@ def update_graph(station, dname, variable, colorscheme, rev):
 				go.Heatmap(
 					x = [str(t) for t in ensmembers[list(ensmembers.keys())[0]].time.data],
 					y = ensmembers[list(ensmembers.keys())[0]][fctime_name].data /3600 /24,
-					z = data_to_plot[dname](variable, station),
+					z = data_to_plot[dname](variables[variable], station),
 					colorscale = colorscheme if not rev else colorscheme + '_r',
 					zsmooth = 'best'
 				))
