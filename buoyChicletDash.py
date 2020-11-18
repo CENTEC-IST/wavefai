@@ -24,6 +24,7 @@ COLORSCHEMES = ['aggrnyl', 'agsunset', 'algae', 'amp', 'armyrose', 'balance',
 			'tempo', 'temps', 'thermal', 'tropic', 'turbid', 'twilight',
 			'viridis', 'ylgn', 'ylgnbu', 'ylorbr', 'ylorrd']
 
+
 # ========================
 #	   READING DATA
 # ========================
@@ -48,25 +49,38 @@ obs_data = xarray.open_dataset(OBSERVED_DATA)
 stations = gwes_data.buoyID.data # list of station names
 
 # variables = sorted([d for d in gwes_data.data_vars if len(gwes_data[d].shape) >1]) # list of data variables names
-variables = ['Dp', 'Hs', 'Tp', 'WSPD']
+def variables(dname):
+	'''Function that returns the list of variables given the name of the data to plot'''
+	if 'GWES' in dname or 'WW3' in dname:
+		return ['Dp', 'Hs', 'Tp']
+	return ['WSPD']
+
 
 fctime_name = 'fctime'
 
 # put multiple ensembles here
-ensmembers= {   'GFS' :gfs_data,
-				'GWES':gwes_data,
-				'WW3' :ww3_data
-			}
+ensmembers= {
+	'GFS' :gfs_data,
+	'GWES':gwes_data,
+	'WW3' :ww3_data
+	}
+
+
+def preset_colorschemes(dname):
+	'''Function that returns the colorscheme given the name of the data to plot'''
+	if dname.startswith('Difference'):
+		return 'rdbu'
+	return 'jet'
 
 # define functions to get which data to plot (a function that receives data (xarray), variable name and station and returns the data to plot)
 data_to_plot = {}
 
-def calc_diff(var, st, var_data, data):
+def calc_diff(var, st, var_data, time, fctime):
 	'''Calculate the difference between a given variable and station in a dataset and the observed data, for each forecast time'''
 	tsize = var_data.shape[0]
 	dd = np.empty(var_data.shape)
-	for fc in range(data[fctime_name].size):
-		at = data.time + np.timedelta64(int(data[fctime_name][fc]), 's')
+	for fc in range(fctime.size):
+		at = time + np.timedelta64(int(fctime[fc]), 's')
 		mask = np.in1d(obs_data.time, at)
 		obs_masked = obs_data[var][st,:][mask].data
 		# TODO here we cut the data to obs_masked.size (this may not correspond to the data that isnt seen in obs_masked)
@@ -75,18 +89,27 @@ def calc_diff(var, st, var_data, data):
 	return dd
 
 for k in ensmembers:
-	if k != 'GFS': # TODO FIXME
-		dx = ensmembers[k]
+	dx = ensmembers[k]
+	if k == 'GFS':
+		data_to_plot[f"{k}"] = \
+			lambda var, st, data=dx: np.sqrt(data['U10m'][st, :, :].data**2 + data['V10m'][st,:,:].data**2).T if var == 'WSPD' and 'U10m' in data and 'V10m' in data else None
+		data_to_plot[f"Difference (Observed - {k})"] = \
+			lambda var, st, data=dx: calc_diff(var, st, np.sqrt(data['U10m'][st, :, :].data**2 + data['V10m'][st,:,:].data**2), data.time, data[fctime_name]).T if var == 'WSPD' and 'U10m' in data and 'V10m' in data else None
+	else:
 		if hasattr(ensmembers[k], 'nensembles'): # if there are multiple ensembleMembers
 			# mean of the ensembles, if variable does not exits the function returns None
-			data_to_plot[f"{k}"] = lambda var, st, data=dx: np.mean(data[var][st, 1:, :, :], axis=0).data.T if var in data else None
+			data_to_plot[f"{k}"] = \
+				lambda var, st, data=dx: np.mean(data[var][st, 1:, :, :], axis=0).data.T if var in data else None
 			# difference from observed data
-			data_to_plot[f"Difference (Observed - {k})"] = lambda var, st, data=dx: calc_diff(var, st, np.mean(data[var][st, 1:, :, :], axis=0), data).T if var in data else None
+			data_to_plot[f"Difference (Observed - {k})"] = \
+				lambda var, st, data=dx: calc_diff(var, st, np.mean(data[var][st, 1:, :, :], axis=0), data.time, data[fctime_name]).T if var in data else None
 		else:
 			# specific ensemble, if variable does not exits the function returns None
-			data_to_plot[f"{k}"] = lambda var, st, data=dx: data[var][st, :, :].data.T if var in data else None
+			data_to_plot[f"{k}"] = \
+				lambda var, st, data=dx: data[var][st, :, :].data.T if var in data else None
 			# difference from observed data
-			data_to_plot[f"Difference (Observed - {k})"] = lambda var, st, data=dx: calc_diff(var, st, data[var][st, :, :], data).T if var in data else None
+			data_to_plot[f"Difference (Observed - {k})"] = \
+				lambda var, st, data=dx: calc_diff(var, st, data[var][st, :, :], data.time, data[fctime_name]).T if var in data else None
 
 # ========================
 #	  DASH APP SETUP
@@ -110,8 +133,8 @@ app.layout = html.Div([
 		html.Div(children='Variable: '),
 		dcc.Dropdown(
 			id='variable',
-			options=[{'label':v, 'value':i} for i, v in enumerate(variables)],
-			value=1, placeholder='Select variable...',
+			options=[], # Will be filled later
+			value=0, placeholder='Select variable...',
 			clearable = False
 		)
 	], style={'width':'20%', 'display':'inline-block'}),
@@ -154,17 +177,14 @@ app.layout = html.Div([
 		Input('colorscheme', 'value'),
 		Input('reversed', 'value')])
 def update_graph(station, dname, variable, colorscheme, rev):
-	if variable == 'WSPD':
-		fig = go.Figure()
-	else:
-		fig = go.Figure(
-				go.Heatmap(
-					x = [str(t) for t in ensmembers[list(ensmembers.keys())[0]].time.data],
-					y = ensmembers[list(ensmembers.keys())[0]][fctime_name].data /3600 /24,
-					z = data_to_plot[dname](variables[variable], station),
-					colorscale = colorscheme if not rev else colorscheme + '_r',
-					zsmooth = 'best'
-				))
+	fig = go.Figure(
+		go.Heatmap(
+			x = [str(t) for t in ensmembers[list(ensmembers.keys())[0]].time.data],
+			y = ensmembers[list(ensmembers.keys())[0]][fctime_name].data /3600 /24,
+			z = data_to_plot[dname](variables(dname)[variable], station),
+			colorscale = colorscheme if not rev else colorscheme + '_r',
+			zsmooth = 'best'
+		))
 
 	fig.update_xaxes(title = 'Time')
 	fig.update_yaxes(title = "Forecast Time (days)")
@@ -172,6 +192,14 @@ def update_graph(station, dname, variable, colorscheme, rev):
 	fig.update_layout(title=f'Chiclet Plot: {dname}')
 
 	return fig
+
+@app.callback(
+		[Output('variable', 'options'),
+		Output('variable', 'value'),
+		Output('colorscheme', 'value')],
+		[Input('plot-data', 'value')])
+def avalable_variables(dname):
+	return [{'label':v, 'value':i} for i, v in enumerate(variables(dname))], 0, preset_colorschemes(dname)
 
 if __name__ == '__main__':
 	app.run_server(host='0.0.0.0', port=8888, debug=True)
