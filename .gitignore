@@ -4,7 +4,6 @@ wavefai_env/*
 # IN/OUT FILES
 *.nc
 *.png
-*.html
 
 **/__pycache__
 
