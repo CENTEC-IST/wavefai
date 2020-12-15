@@ -9,11 +9,11 @@ np.warnings.filterwarnings('ignore')
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import confusion_matrix
-from io import StringIO  
-from IPython.display import Image  
+from io import StringIO
+from IPython.display import Image
 from sklearn.tree import export_graphviz
 import pydotplus
-from collections import OrderedDict 
+from collections import OrderedDict
 from sklearn.model_selection import GridSearchCV
 import matplotlib.pyplot as plt
 from datetime import timedelta
@@ -32,11 +32,11 @@ from iteration_utilities import deepflatten
 import sklearn.metrics as metrics
 
 #lOAD DATA
-WW3_N= 'WW3_selectionPointNearest_20190925_20200701.nc'
+WW3_N= '../data/buoys/WW3_selectionPointNearest_20190925_20200701.nc'
 nc_N0=Dataset(WW3_N,'r')
-GWES_N= 'GWES_selectionPointNearest_20190925_20200701.nc'
+GWES_N= '../data/buoys/GWES_selectionPointNearest_20190925_20200701.nc'
 nc_N1=Dataset(GWES_N,'r')
-GFS_N='GFS_selectionPointNearest_20190925_20200701.nc'
+GFS_N='../data/buoys/GFS_selectionPointNearest_20190925_20200701.nc'
 nc_N2=Dataset(GFS_N,'r')
 
 #deterministic
@@ -76,8 +76,8 @@ u=nc_N2['U10m']
 v=nc_N2['V10m']
 t2=netCDF4.num2date(nc_N2['time'][:],nc_N2['time'].units,only_use_cftime_datetimes=False,only_use_python_datetimes=True)
 
-#buoys 
-buoys='NDBC_selection_deepWaters_20190925_20200701.nc'
+#buoys
+buoys='../data/buoys/NDBC_selection_deepWaters_20190925_20200701.nc'
 buoys=Dataset(buoys,'r')
 buoy=[None]*len(buoys['buoyID'])
 for i in range(len(buoys['buoyID'])):
@@ -100,8 +100,8 @@ plt.rcParams.update({'font.size': 17}) #set general fontsize of plots
 with plt.style.context('seaborn-colorblind'):
     plt.figure(figsize=(16, 5))
     for i in range(len(buoy)):
-        plt.plot(buoy[i].index,buoy[i]['Hs'],label= buoys['buoyID'][i])    
-    
+        plt.plot(buoy[i].index,buoy[i]['Hs'],label= buoys['buoyID'][i])
+
     plt.legend(loc='upper right',frameon=False,ncol=2)
     plt.xlabel('Time')
     plt.ylabel('Hs')
@@ -141,7 +141,7 @@ def metricsB(*args):
         sys.exit(' vmin cannot be higher than vmax.')
 
     ind=np.where((np.isnan(model)==False) & (np.isnan(obs)==False) & (model>vmin) & (model<vmax) & (obs>vmin) & (obs<vmax) & (np.abs(model-obs)<=maxdiff) )
-    
+
     if np.any(ind) or model.shape[0]==1:
         model=np.copy(model[ind[0]]); obs=np.copy(obs[ind[0]])
     else:
@@ -152,7 +152,7 @@ def metricsB(*args):
     ferr[0] = model.mean()-obs.mean() # Bias
     ferr[1] = (((model-obs)**2).mean())**0.5 # RMSE
     if obs.mean()!=0.:
-        ferr[2] = ferr[0] / np.abs(obs.mean()) # Normalized Bias 
+        ferr[2] = ferr[0] / np.abs(obs.mean()) # Normalized Bias
     ferr[3] = ( ((model-obs)**2).sum() / (obs**2).sum() )**0.5  # Normalized RMSE
     # ferr[4] = ((((model-model.mean())-(obs-obs.mean()))**2).mean())**0.5   # Scatter Component of RMSE
     if ( (ferr[1]**2) - (ferr[0]**2) ) >= 0.:
@@ -171,8 +171,8 @@ def ranking(ranks, names, order=1):
     return dict(zip(names, ranks))
 
 #CREATE THE DATAFRAMES OF THE STUDY
-def data(Dp0, Hs0, Tp0, Ds10, Ds20, Hs10, Hs20, Ts10, 
-         Ts20, Dw0, Hw0, Tw0, t0, Dp1, Hs1, Tp1, Ds11, Ds21, Hs11, Hs21, Ts11, 
+def data(Dp0, Hs0, Tp0, Ds10, Ds20, Hs10, Hs20, Ts10,
+         Ts20, Dw0, Hw0, Tw0, t0, Dp1, Hs1, Tp1, Ds11, Ds21, Hs11, Hs21, Ts11,
          Ts21, Dw1, Hw1, Tw1, t1, u2, v2, t2, ft, s, obs, b):
     '''
     s: seconds to shift from nowcast
@@ -182,41 +182,41 @@ def data(Dp0, Hs0, Tp0, Ds10, Ds20, Hs10, Hs20, Ts10,
     '''
     if not np.logical_and( (t0==t1).all(), (t1==t2).all() ):
         sys.exit('Models must have same times')
-        
+
     #m0 (ww3)
-    df0=[Dp0[b,:,ft],Hs0[b,:,ft],Tp0[b,:,ft],Ds10[b,:,ft], Ds20[b,:,ft], Hs10[b,:,ft], Hs20[b,:,ft], Ts10[b,:,ft], 
+    df0=[Dp0[b,:,ft],Hs0[b,:,ft],Tp0[b,:,ft],Ds10[b,:,ft], Ds20[b,:,ft], Hs10[b,:,ft], Hs20[b,:,ft], Ts10[b,:,ft],
          Ts20[b,:,ft], Dw0[b,:,ft], Hw0[b,:,ft], Tw0[b,:,ft]]
-    df0=pd.DataFrame(data=np.transpose(np.array(df0)))    
+    df0=pd.DataFrame(data=np.transpose(np.array(df0)))
     df0.apply(pd.to_numeric)
     ti0=t0+timedelta(seconds=s)
     model0=df0.set_index(pd.DatetimeIndex(pd.Series(ti0)))
-    
+
     #m1 (gwes)
-    dfa=[]    
+    dfa=[]
     for j in range(1,21):
-        df1=[Dp1[b,j,:,ft],Hs1[b,j,:,ft],Tp1[b,j,:,ft],Ds11[b,j,:,ft], Ds21[b,j,:,ft], Hs11[b,j,:,ft], Hs21[b,j,:,ft], 
+        df1=[Dp1[b,j,:,ft],Hs1[b,j,:,ft],Tp1[b,j,:,ft],Ds11[b,j,:,ft], Ds21[b,j,:,ft], Hs11[b,j,:,ft], Hs21[b,j,:,ft],
              Ts11[b,j,:,ft], Ts21[b,j,:,ft], Dw1[b,j,:,ft], Hw1[b,j,:,ft], Tw1[b,j,:,ft]]
         df1=pd.DataFrame(data=np.transpose(np.array(df1)))
         dfa.append(df1)
-        
+
     df1a=pd.concat(dfa)
     vHs=df1a[df1a.columns[1]].groupby(df1a.index).var()
-    df1a=df1a.groupby(df1a.index).mean()  #data is the mean of all elements per time  
+    df1a=df1a.groupby(df1a.index).mean()  #data is the mean of all elements per time
     df1a['varHs']=vHs
     df1a.apply(pd.to_numeric)
     ti1=t1+timedelta(seconds=s)
     model1=df1a.set_index(pd.DatetimeIndex(pd.Series(ti1)))
-    
+
     df2=[u2[b,:,ft],v2[b,:,ft]]
     df2=pd.DataFrame(data=np.transpose(np.array(df2)))
     df2.apply(pd.to_numeric)
     ti2=t2+timedelta(seconds=s)
     model2=df2.set_index(pd.DatetimeIndex(pd.Series(ti2)))
-    
+
     model0.columns=['Dp0','Hs0','Tp0','Ds10','Ds20','Hs10','Hs20','Ts10','Ts20','Dw0','Hw0','Tw0']
     model1.columns=['Dp1','Hs1','Tp1','Ds11','Ds21','Hs11','Hs21','Ts11','Ts21','Dw1','Hw1','Tw1','varHs1']
-    model2.columns=['U','V']    
-    
+    model2.columns=['U','V']
+
     #convert all direction features
     model0['sinD0']=np.sin(2*np.pi*model0[['Dp0']]/360)
     model0['cosD0']=np.cos(2*np.pi*model0[['Dp0']]/360)
@@ -227,7 +227,7 @@ def data(Dp0, Hs0, Tp0, Ds10, Ds20, Hs10, Hs20, Ts10,
     model0['sinDw0']=np.sin(2*np.pi*model0[['Dw0']]/360)
     model0['cosDw0']=np.cos(2*np.pi*model0[['Dw0']]/360)
     model0=model0.round(decimals=3)
-    
+
     model1['sinD1']=np.sin(2*np.pi*model1[['Dp1']]/360)
     model1['cosD1']=np.cos(2*np.pi*model1[['Dp1']]/360)
     model1['sinDs11']=np.sin(2*np.pi*model1[['Ds11']]/360)
@@ -237,14 +237,14 @@ def data(Dp0, Hs0, Tp0, Ds10, Ds20, Hs10, Hs20, Ts10,
     model1['sinDw1']=np.sin(2*np.pi*model1[['Dw1']]/360)
     model1['cosDw1']=np.cos(2*np.pi*model1[['Dw1']]/360)
     model1=model1.round(decimals=3)
-    
+
     l0=len(model0) #model0 and model1 have same size (must)
-    
+
     #Add hs prediction errors
     errorw=np.empty((0)) #error hs0
     errorg=np.empty((0)) #error hs1
-    for h in range(l0):        
-        ind = np.where(obs.index == model0.index[h]) #find position where times match 
+    for h in range(l0):
+        ind = np.where(obs.index == model0.index[h]) #find position where times match
         if len(ind[0])!=0: #if a position was found
             errorw = np.append(errorw, abs(model0['Hs0'][h] - obs.iloc[ind])) #append to array of errors abs of difference
             errorg = np.append(errorg, abs(model1['Hs1'][h] - obs.iloc[ind]))
@@ -256,9 +256,9 @@ def data(Dp0, Hs0, Tp0, Ds10, Ds20, Hs10, Hs20, Ts10,
     X=X.drop(['Dp0','Ds10','Ds20','Dw0','Dp1','Ds11','Ds21','Dw1'],axis=1)  #drop directions
     y=[]
     #creating target class with variable choice
-    choice=np.array(errorw)-np.array(errorg) 
-    
-    #if choice[i] is positive, at time i, error of prediction is higher in model0 (errorw[i]) --> assign class 1 (lower errorg[i])    
+    choice=np.array(errorw)-np.array(errorg)
+
+    #if choice[i] is positive, at time i, error of prediction is higher in model0 (errorw[i]) --> assign class 1 (lower errorg[i])
     for i in range(l0):
         #choice has nan values if matching position is not found previously (obs index)
         if not np.isnan(choice[i]):
@@ -266,24 +266,24 @@ def data(Dp0, Hs0, Tp0, Ds10, Ds20, Hs10, Hs20, Ts10,
                 y.append(1)#gwes
             elif choice[i]<0:
                 y.append(0)#ww3
-            elif s<432000:#when error is the same, if ft is less than 5 days (seconds = 432000): ww3, else: gwes 
+            elif s<432000:#when error is the same, if ft is less than 5 days (seconds = 432000): ww3, else: gwes
                 y.append(0)
             else:
                 y.append(1)
         else: #choice is nan
               y.append(np.nan)
-                
+
     X['buoy']=[b]*len(X) #variable indicating buoy index
-    X['y']=y 
-    
+    X['y']=y
+
     X=X.dropna()
     X['y']=X['y'].astype('int64')
-    
+
     return X, errorw,errorg
 
 #Feature importance and ranking
 def selection(X_train,y_train):
-    
+
     names=X_train.columns
     rank=[]
     clf=RandomForestClassifier(random_state=42, max_features='sqrt',criterion='entropy',
@@ -291,29 +291,29 @@ def selection(X_train,y_train):
     permuter=PermutationImportance(clf, n_iter=10, random_state=42, cv=3, scoring='accuracy') #reduce n_iter --> lower computational cost
     selector= RFECV(permuter,scoring='accuracy',cv=3).fit(X_train, y_train)
     rank=ranking(list(map(float, selector.ranking_)), names  , order=-1)#ranking: function created above to organize in dictionary
-    
+
     return(rank)
 
-#S for simple, predict with suboptimal (simpler) classifier 
+#S for simple, predict with suboptimal (simpler) classifier
 def decisionS(X_train,y_train,X_test,y_test, df_rank,n):
     '''
-    df_rank: ordered ranking of features in dataframe without reseting index 
+    df_rank: ordered ranking of features in dataframe without reseting index
     n: number of features to include in dataset
     '''
-    selected_features=list(df_rank.index[0:n])   
-    
+    selected_features=list(df_rank.index[0:n])
+
     X_train_sel = X_train.iloc[:,selected_features]
-    X_test_sel = X_test.iloc[:,selected_features]    
-        
+    X_test_sel = X_test.iloc[:,selected_features]
+
     clf=RandomForestClassifier(random_state=42, max_features='sqrt',criterion='entropy',
                               max_depth=10, min_samples_split=30, max_leaf_nodes=10)#hyperparameters were set manually (suboptimal)
-    clf.fit(X=X_train_sel, y=y_train)                     
+    clf.fit(X=X_train_sel, y=y_train)
     y_pred=clf.predict(X_test_sel)
-    acc1=accuracy_score(y_test,y_pred)      
+    acc1=accuracy_score(y_test,y_pred)
     return (acc1)
 
 #predict with optimal set of hyperparameters
-def decision(X_train_sel,X_test_sel,y_train,y_test):       
+def decision(X_train_sel,X_test_sel,y_train,y_test):
 
     param_grid = {"criterion": ["gini",'entropy'],
                 'n_estimators': [400],
@@ -321,18 +321,18 @@ def decision(X_train_sel,X_test_sel,y_train,y_test):
                 "max_depth": list(range(2,15)),
                 "max_leaf_nodes": list(range(3,20)),
                 'max_features':['sqrt']}   #range of values set manually
-    
+
     clf=RandomForestClassifier(random_state=42)
     clf = GridSearchCV(clf, param_grid, n_jobs=-1,cv=3) #test all possible combinations of hyperparameters
     clf.fit(X=X_train_sel, y=y_train)
     tree_model = clf.best_estimator_ #the best model - set of hyperparameters
-                     
+
     y_pred=tree_model.predict(X_test_sel)
     acc0=accuracy_score(y_train, tree_model.predict(X_train_sel)) #accuracy of training set
     acc1=accuracy_score(y_test,y_pred) #accuracy of test set
-   
-    return (acc0,acc1,tree_model,y_pred)    
-    
+
+    return (acc0,acc1,tree_model,y_pred)
+
 
 def mergeDict(dict1, dict2):
     ''' Merge dictionaries and keep values of common keys in list'''
@@ -347,11 +347,11 @@ def mergeDict(dict1, dict2):
 def flatten(lst):
     for x in lst:
         if isinstance(x, list):
-            for y in flatten(x): 
-                yield y           
+            for y in flatten(x):
+                yield y
         else:
             yield x
-            
+
 def get_redundant_pairs(df):
     '''Get diagonal and lower triangular pairs of correlation matrix'''
     pairs_to_drop = set()
@@ -380,7 +380,7 @@ for b in range(len(buoy)):
     obs=buoy[b]
     m0=[]
     m1=[]
-    for i in range(0,61):    
+    for i in range(0,61):
         df=Hs0[b,:,i]
         df=pd.DataFrame(data = df)
         df.apply(pd.to_numeric)
@@ -392,7 +392,7 @@ for b in range(len(buoy)):
         model0['model']=[0]*l0
 
         #ensemble average of GWES
-        dfa=[]    
+        dfa=[]
         for j in range(1,21):
             df=Hs1[b,j,:,i]
             df=pd.DataFrame(data = df)
@@ -410,8 +410,8 @@ for b in range(len(buoy)):
         #buoy errors
         errorw=np.empty((0))
         errorg=np.empty((0))
-        for h in range(l0):             
-            ind = np.where(obs.index == model0.index[h])              
+        for h in range(l0):
+            ind = np.where(obs.index == model0.index[h])
             if len(ind[0])!=0:
                 errorw = np.append(errorw, model0['Hs'][h] - obs.iloc[ind])
                 errorg = np.append(errorg, model1['Hs'][h] - obs.iloc[ind])
@@ -445,16 +445,16 @@ for i in dt[::50]:
     dts.append(i)
 fts=[]
 for i in ft[::20]:
-    fts.append(i/60/60/24)    
+    fts.append(i/60/60/24)
 #-------------------------------
-for i in range(len(buoy)):    
+for i in range(len(buoy)):
     #WW3
     figure = plt.figure(figsize=(16,2) )
-    ax = plt.subplot() 
+    ax = plt.subplot()
     m0m=ax.scatter(X,Y,c=M0[i], s=15, linewidth=0, marker="s",cmap='RdYlBu')
     figure.colorbar(m0m, ax=ax,shrink=0.9, aspect=7,pad=.01)
     ax.margins(0)
-    #figure.canvas.draw()    
+    #figure.canvas.draw()
     ax.set_xticks(np.arange(0,M0[i].shape[1],50))
     ax.set_xticklabels(dts)
     ax.set_yticks(np.arange(0,M0[i].shape[0],20))
@@ -464,9 +464,9 @@ for i in range(len(buoy)):
     ax.yaxis.set_label_coords(-0.07, 0.5)
     #if buoys['buoyID'][i] == '44008':
         #plt.savefig('chiclet{}'.format(0), bbox_inches='tight')
-    #GWES    
+    #GWES
     figure = plt.figure(figsize=(16,2) )
-    ax = plt.subplot() 
+    ax = plt.subplot()
     m1m=ax.scatter(X,Y,c=M1[i], s=15, linewidth=0, marker="s",cmap='RdYlBu')#,vmin=-4,vmax=4)
     figure.colorbar(m1m, ax=ax, shrink=0.9, aspect=7,pad=.01)
     ax.margins(0)
@@ -479,7 +479,7 @@ for i in range(len(buoy)):
     ax.set_ylabel('Forecast Time (days)')
     ax.yaxis.set_label_coords(-0.07, 0.5)
     #if buoys['buoyID'][i] == '44008':
-        #plt.savefig('chiclet{}'.format(1), bbox_inches='tight')   
+        #plt.savefig('chiclet{}'.format(1), bbox_inches='tight')
 
 #Plot
 #Metrics
@@ -493,64 +493,64 @@ for i in range(len(buoy)):
         gm=Dset[j+61*i][['Hs']].iloc[l:] #array GWES
         Bmatch[j+61*i]=[np.array([np.nan]) if len(Bmatch[j+61*i][q])==0 else Bmatch[j+61*i][q] for q in range(l)]
         mw=metricsB(np.array(wm).flatten(),np.array(list(deepflatten(Bmatch[j+61*i]))))
-        mg=metricsB(np.array(gm).flatten(),np.array(list(deepflatten(Bmatch[j+61*i]))))    
+        mg=metricsB(np.array(gm).flatten(),np.array(list(deepflatten(Bmatch[j+61*i]))))
         Mw.append(mw)
         Mg.append(mg)
     Mw=np.vstack(Mw)
     Mw=np.transpose(Mw)
     Mg=np.vstack(Mg)
     Mg=np.transpose(Mg)
-    figure = plt.figure(figsize=(5,5)) 
-    ax = plt.subplot()    
+    figure = plt.figure(figsize=(5,5))
+    ax = plt.subplot()
     ax.plot(ft0[0:61]/60/60/24,Mw[2],c='green',label='0 (WW3)')
-    ax.plot(ft1[0:61]/60/60/24,Mg[2],c='blue',label='1 (GWES)') 
+    ax.plot(ft1[0:61]/60/60/24,Mg[2],c='blue',label='1 (GWES)')
     ax.set_xlabel('Forecast Time (days)')
-    ax.set_ylabel('NBias')   
+    ax.set_ylabel('NBias')
     plt.legend(frameon=False)
     #if buoys['buoyID'][i] == '44008':
-     #   plt.savefig('metrics{}'.format('NBias'), bbox_inches='tight')   
-    
-    figure = plt.figure(figsize=(5,5)) 
+     #   plt.savefig('metrics{}'.format('NBias'), bbox_inches='tight')
+
+    figure = plt.figure(figsize=(5,5))
     ax = plt.subplot()
     ax.plot(ft0[0:61]/60/60/24,Mw[5],c='green',label='0 (WW3)')
-    ax.plot(ft1[0:61]/60/60/24,Mg[5],c='blue',label='1 (GWES)')    
+    ax.plot(ft1[0:61]/60/60/24,Mg[5],c='blue',label='1 (GWES)')
     ax.set_xlabel('Forecast Time (days)')
     ax.set_ylabel('SI')
     plt.legend(frameon=False)
     #if buoys['buoyID'][i] == '44008':
-     #   plt.savefig('metrics{}'.format('SI'), bbox_inches='tight')           
-    
-    figure = plt.figure(figsize=(5,5))   
+     #   plt.savefig('metrics{}'.format('SI'), bbox_inches='tight')
+
+    figure = plt.figure(figsize=(5,5))
     ax = plt.subplot()
     ax.plot(ft0[0:61]/60/60/24,Mw[1],c='green',label='0 (WW3)')
     ax.plot(ft1[0:61]/60/60/24,Mg[1],c='blue',label='1 (GWES)')
     ax.set_ylabel('RMSE')
     plt.legend(frameon=False)
     #if buoys['buoyID'][i] == '44008':
-     #   plt.savefig('metrics{}'.format('RMSE'), bbox_inches='tight')   
-        
-    figure = plt.figure(figsize=(5,5)) 
+     #   plt.savefig('metrics{}'.format('RMSE'), bbox_inches='tight')
+
+    figure = plt.figure(figsize=(5,5))
     ax = plt.subplot()
     ax.plot(ft0[0:61]/60/60/24,Mw[7],c='green',label='0 (WW3)')
     ax.plot(ft1[0:61]/60/60/24,Mg[7],c='blue',label='1 (GWES)')
     ax.set_xlabel('Forecast Time (days)')
-    ax.set_ylabel('CC') 
+    ax.set_ylabel('CC')
     plt.legend(frameon=False)
     #if buoys['buoyID'][i] == '44008':
-     #   plt.savefig('metrics{}'.format('CC'), bbox_inches='tight')   
+     #   plt.savefig('metrics{}'.format('CC'), bbox_inches='tight')
 
 #Merge data from all buoys for specific forecast time
 Xx=[None]*3
 ew=[None]*3
 eg=[None]*3
 h=0
-for i in forecast: 
+for i in forecast:
     x=[]
     eww=[]
     egg=[]
     for j in range(len(buoy)):
-        X,errorw,errorg = data(Dp0, Hs0, Tp0, Ds10, Ds20, Hs10, Hs20, Ts10, 
-             Ts20, Dw0, Hw0, Tw0, t0, Dp1, Hs1, Tp1, Ds11, Ds21, Hs11, Hs21, Ts11, 
+        X,errorw,errorg = data(Dp0, Hs0, Tp0, Ds10, Ds20, Hs10, Hs20, Ts10,
+             Ts20, Dw0, Hw0, Tw0, t0, Dp1, Hs1, Tp1, Ds11, Ds21, Hs11, Hs21, Ts11,
              Ts21, Dw1, Hw1, Tw1, t1, u, v, t2, i, ft0[i].item(0),buoy[j], j)
         x.append(X)
         eww.append(errorw)
@@ -559,30 +559,30 @@ for i in forecast:
     ew[h]=np.concatenate(eww)
     eg[h]=np.concatenate(egg)
     h+=1
-    
+
 #Check balance of output
 for i in range(3):
     print(Xx[i]['y'].value_counts(normalize=True) * 100)
 
 #Plot
-#Balance: target values per buoy 
+#Balance: target values per buoy
 Yy=[None]*3
 
 for i in range(3):
     fig = plt.figure(figsize=(7,4))
-    ax = plt.subplot()#1, 3, j+1   
-    sns.countplot(x="buoy",  hue="y", data=Xx[i], ax=ax,palette=['green','blue'])   
+    ax = plt.subplot()#1, 3, j+1
+    sns.countplot(x="buoy",  hue="y", data=Xx[i], ax=ax,palette=['green','blue'])
     ax.set_title('Forecast day {}'.format(ft0[forecast[i]].item(0)/60/60/24))
     ax.set_xlabel('Buoy')
     ax.set_ylabel('Count')
     ax.set_xticklabels(buoys['buoyID'][:])
     legend_labels, _= ax.get_legend_handles_labels()
     ax.legend(legend_labels, ['0 (WW3)','1 (GWES)'],loc='lower right' )
-    
+
     Yy[i]=Xx[i]['y'] #just here, separate target from rest of dataframe
-    Yy[i]=Yy[i].values.reshape((len(Yy[i]),1)).astype('int64') 
-    Xx[i]=Xx[i].drop(['y','buoy'],axis=1) #drop buoy information also    
-    Xx[i]=Xx[i].astype(float) 
+    Yy[i]=Yy[i].values.reshape((len(Yy[i]),1)).astype('int64')
+    Xx[i]=Xx[i].drop(['y','buoy'],axis=1) #drop buoy information also
+    Xx[i]=Xx[i].astype(float)
     plt.savefig('countlabel{}'.format(i))
 
 #Plot
@@ -594,14 +594,14 @@ for i in range(3):
     ax = plt.subplot()
     corr=Xx[i].corr()
     mask = np.triu(np.ones_like(corr, dtype=bool))
-    sns.heatmap(corr, mask=mask,ax=ax,                
+    sns.heatmap(corr, mask=mask,ax=ax,
                 vmin=-1, vmax=1,cbar_ax=cbar_ax,
                 xticklabels=True, yticklabels=True)
     ax.set_title('Forecast day {}'.format(ft0[forecast[i]].item(0)/60/60/24))
     #--lines-to-separate-groups-of-features----------------
     ax.hlines([2,18], [0,0],[1,18],colors='w')
     ax.vlines([2,18],[2,18],[35,35],colors='w')
-  
+
     #plt.savefig('corr{}'.format(i))
 
 #Remove features with Pearson's correlation higher than threshold (one each pair)
@@ -621,7 +621,7 @@ X_test=[None]*3
 y_train=[None]*3
 y_test=[None]*3
 
-for i in range(3):    
+for i in range(3):
     X_train[i], X_test[i], y_train[i], y_test[i] = train_test_split(Xx[i], Yy[i], test_size=0.15, random_state=42)
 
 
@@ -652,7 +652,7 @@ X_train1, X_test1, y_train1, y_test1 = train_test_split(X_train[i], y_train[i], 
 
 #---N-trees-and-max-features-----------
 fig = plt.figure(figsize=(6,4))
-ax = plt.subplot()   
+ax = plt.subplot()
 trees = np.arange(50, 900)
 ensemble_clfs = [("max_features='sqrt'", RandomForestClassifier( warm_start=True,
                             max_features="sqrt", random_state=42)), # in this case, max_features is 5 (floor of sqrt(35))
@@ -663,11 +663,11 @@ colors=['green','orange']
 c=0
 for label, dt in ensemble_clfs:
     test1_results = []
-    for i in trees:        
+    for i in trees:
         dt.set_params(n_estimators=i)
-        dt.fit(X_train1, y_train1)           
+        dt.fit(X_train1, y_train1)
         accuracy = accuracy_score(y_test1, dt.predict(X_test1))
-        test1_results.append(accuracy)    
+        test1_results.append(accuracy)
 
     line2, = ax.plot(trees, test1_results, colors[c], label= label)
     c+=1
@@ -683,9 +683,9 @@ max_depths = np.linspace(1, 50, 50, endpoint=True)
 train1_results = []
 test1_results = []
 
-for i in max_depths:    
+for i in max_depths:
     dt = RandomForestClassifier(warm_start=True,max_depth=i)
-    dt.fit(X_train1, y_train1)    
+    dt.fit(X_train1, y_train1)
     accuracy = accuracy_score(y_train1,dt.predict(X_train1))
     train1_results.append(accuracy)
     accuracy = accuracy_score(y_test1, dt.predict(X_test1))
@@ -704,9 +704,9 @@ samples_split = np.arange(2,51)
 train1_results = []
 test1_results = []
 
-for i in samples_split:    
+for i in samples_split:
     dt = RandomForestClassifier(warm_start=True,min_samples_split=i)
-    dt.fit(X_train1, y_train1)    
+    dt.fit(X_train1, y_train1)
     accuracy = accuracy_score(y_train1,dt.predict(X_train1))
     train1_results.append(accuracy)
     accuracy = accuracy_score(y_test1, dt.predict(X_test1))
@@ -724,9 +724,9 @@ leaf_nodes = np.arange(2,100)
 train1_results = []
 test1_results = []
 
-for i in leaf_nodes:    
+for i in leaf_nodes:
     dt = RandomForestClassifier(warm_start=True,max_leaf_nodes=i)
-    dt.fit(X_train1, y_train1)    
+    dt.fit(X_train1, y_train1)
     accuracy = accuracy_score(y_train1,dt.predict(X_train1))
     train1_results.append(accuracy)
     accuracy = accuracy_score(y_test1, dt.predict(X_test1))
@@ -745,9 +745,9 @@ samples_leaf=np.arange(1,51)
 train1_results = []
 test1_results = []
 
-for i in samples_leaf:    
+for i in samples_leaf:
     dt = RandomForestClassifier(warm_start=True,min_samples_leaf=i)
-    dt.fit(X_train1, y_train1)    
+    dt.fit(X_train1, y_train1)
     accuracy = accuracy_score(y_train1,dt.predict(X_train1))
     train1_results.append(accuracy)
     accuracy = accuracy_score(y_test1, dt.predict(X_test1))
@@ -785,24 +785,24 @@ for i in range(3):   #for each dataframe split training set multiple times
     final[i] = final[i].sort_values('Mean Ranking', ascending=False)  #final list of ordered ranking
 
 
-#Plot 
+#Plot
 #Ranking of features
 
-for i in range(3): 
+for i in range(3):
     fig = plt.figure(figsize=(15,4))
-    ax = plt.subplot() 
+    ax = plt.subplot()
     sns.barplot(x='Feature', y='Mean Ranking', data = final[i], palette='coolwarm',ax=ax)
     ax.set_xticklabels(ax.get_xticklabels(),rotation=90)
     labels = list(final[i]['Sd'])
     j=0
     #each bar with sd information
-    for j, (label, height) in enumerate(zip(labels, final[i]['Mean Ranking'])):         
+    for j, (label, height) in enumerate(zip(labels, final[i]['Mean Ranking'])):
         ax.text(j, height, ' ' + str(label), ha='center', va='top',rotation=90)
     ax.set_title('Forecast day {}'.format(ft0[forecast[i]].item(0)/60/60/24))
 
     #plt.savefig('ranking_v{}'.format(i))
 
-#Plot 
+#Plot
 #Accuracy of simple model depending on number of features selected
 
 a=[]
@@ -810,25 +810,25 @@ a=[]
 n_repeats=10
 n_splits=5
 #--------------
-Fsamples=n_repeats*n_splits 
+Fsamples=n_repeats*n_splits
 for i in range(3):
     fig = plt.figure(figsize=(8,4))
     kfold = RepeatedStratifiedKFold(n_repeats=n_repeats, n_splits=n_splits, random_state=42)#0.1 for test. same splits as before
     ax=plt.subplot()
     ax.set_title('Forecast day {}'.format(ft0[forecast[i]].item(0)/60/60/24))
-    
+
     for train, test in kfold.split(X_train[i], y_train[i]): #for each sample in the training set
         a1=[]
-        
+
         for n in np.arange(1,len(X_train[i].columns)+1): #adding a feature based on ranking at a time
             dd=decisionS(X_train[i].iloc[train,:], y_train[i][train],X_train[i].iloc[test,:], y_train[i][test],final[i],n)
             a1.append(dd)
-        a.append(a1)    
+        a.append(a1)
         ax.plot(np.arange(1,len(X_train[i].columns)+1),a1,'k--',color='grey',label="Samples' accuracy") #each line is the accuracy of a sample using n features
     loc=len(a)
     ax.errorbar(np.arange(1,len(X_train[i].columns)+1),np.array(a[i*Fsamples:loc]).mean(axis=0),
                 yerr=np.array(a[i*Fsamples:loc]).std(axis=0),color='black',label='Mean accuracy')
-    ax.set_xlabel('n')    
+    ax.set_xlabel('n')
     #--Block-for-legend------------------------
     handles, labels = plt.gca().get_legend_handles_labels()
     by_label = dict(zip(labels, handles))
@@ -856,7 +856,7 @@ g=g.round(3)
 #Selecting best features by hand starts here
 #Optimal number of features before manually optimize
 for i in range(3):
-    selected=list(final[i].index[0:(n[i]+1)]) 
+    selected=list(final[i].index[0:(n[i]+1)])
     print(X_train[i].columns[selected])
 
 
@@ -879,14 +879,14 @@ kfold = RepeatedStratifiedKFold(n_repeats=10, n_splits=5, random_state=42)#0.1 f
 a1=[]
 for train, test in kfold.split(X_train[i], y_train[i]):
 
-    X_train1, y_train1, X_test1, y_test1= X_train[i].iloc[train,:], y_train[i][train], X_train[i].iloc[test,:], y_train[i][test]    
-    selected_features=list(final[i].index[0:(n[i]+1)])  
+    X_train1, y_train1, X_test1, y_test1= X_train[i].iloc[train,:], y_train[i][train], X_train[i].iloc[test,:], y_train[i][test]
+    selected_features=list(final[i].index[0:(n[i]+1)])
     #add feature:
     selected_features.append(final[i].index[11])
-   
+
     X_train_sel = X_train1.iloc[:,selected_features]
-    X_test_sel = X_test1.iloc[:,selected_features]  
-    
+    X_test_sel = X_test1.iloc[:,selected_features]
+
     #drop feature:
     X_train_sel=X_train_sel.drop(['Ts11'],axis=1)
     X_test_sel=X_test_sel.drop(['Ts11'],axis=1)
@@ -894,7 +894,7 @@ for train, test in kfold.split(X_train[i], y_train[i]):
     clf=RandomForestClassifier(random_state=42, max_features='sqrt',criterion='entropy',
                               max_depth=10, min_samples_split=30, max_leaf_nodes=10)
     clf.fit(X=X_train_sel, y=y_train1)
-                     
+
     y_pred=clf.predict(X_test_sel)
     acc1=accuracy_score(y_test1,y_pred)
     a1.append(acc1)
@@ -907,7 +907,7 @@ np.mean(a1) #check whether the accuracy increases or decreases
 
 selected_features=[['Hs1','Hs21','sinD0','varHs1','cosD0','sinDs21','cosD1','Tp0','cosDs10'],
                    ['sinD0','Hs0','Ts20','cosDw0','Tp0','Hw0','cosDs21'],
-                   ['Tw0','cosDw0','cosDs11','Hs1','Tp0']] 
+                   ['Tw0','cosDw0','cosDs11','Hs1','Tp0']]
 
 tree_model=[None]*3
 y_pred=[None]*3
@@ -923,7 +923,7 @@ for i in range(3):
 #Confusion matrix of results
 for i in range(3):
     fig = plt.figure(figsize=(3,3))
-    cbar_ax = fig.add_axes([.93,.3,.03,.4]) 
+    cbar_ax = fig.add_axes([.93,.3,.03,.4])
     ax=plt.subplot()
     cnf_matrix = metrics.confusion_matrix(y_test[i], y_pred[i])
     group_names = ['True 0','False 1','False 0','True 1']
@@ -933,7 +933,7 @@ for i in range(3):
     labels = np.asarray(labels).reshape(2,2)
     sns.heatmap(pd.DataFrame(cnf_matrix), annot=labels, fmt='',ax=ax, cmap='coolwarm',cbar_ax=cbar_ax)
 
-    #fig.tight_layout()  
+    #fig.tight_layout()
     #plt.savefig('confusion_matrix{}'.format(i))
 
 
@@ -952,7 +952,7 @@ for i in range(3):
     plt.xlabel(s[0])
     plt.ylabel(s[1])
     plt.title('Forecast day {}'.format(ft0[forecast[i]].item(0)/60/60/24))
-    
+
     #plt.savefig('3d{}'.format(i), bbox_inches='tight')
 
 
@@ -979,13 +979,13 @@ for i in range(3):
                        s[2]: Xx[i][s[2]]})
 
     color = { '0' : 'green',
-              '1' : 'blue'}     
+              '1' : 'blue'}
 
     fig = go.Figure()
     for lbl in df['label'].unique():
         dfp = df[df['label']==lbl]
         fig.add_traces(go.Scatter3d(x=dfp[s[0]], y=dfp[s[1]],z=dfp[s[2]], mode='markers',
-                                 name=lbl, marker = dict(color=color[lbl], size = markersize,opacity=1, 
+                                 name=lbl, marker = dict(color=color[lbl], size = markersize,opacity=1,
                                  line=dict(width=0.001)) ))
 
     fig.update_layout(title='Four most important features at forecast day {}'.format(j),legend_title="Legend",
@@ -1008,7 +1008,7 @@ dot_data = StringIO()
 export_graphviz(tree_model[i].estimators_[tree], out_file=dot_data, feature_names =selected_features[i],
                 class_names = [str(x) for x in [ int(x) for x in tree_model[i].classes_ ]],
                 filled=True, rounded=True, special_characters=True)
-graph = pydotplus.graph_from_dot_data(dot_data.getvalue())  
+graph = pydotplus.graph_from_dot_data(dot_data.getvalue())
 #graph.write_png("dt.png")
 Image(graph.create_png())
 

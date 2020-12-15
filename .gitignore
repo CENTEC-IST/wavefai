@@ -1,5 +1,6 @@
 # VIRTUALENV
 wavefai_env/*
+random_forest/rf/*
 
 # IN/OUT FILES
 *.nc
