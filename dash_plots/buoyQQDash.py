@@ -14,16 +14,16 @@ FONT = 'Courier New'
 # ========================
 
 # nearest
-# GFS_DATA = 'data/buoys/GFS_selectionPointNearest_20190925_20200701.nc'
-# GWES_DATA = 'data/buoys/GWES_selectionPointNearest_20190925_20200701.nc'
-# WW3_DATA = 'data/buoys/WW3_selectionPointNearest_20190925_20200701.nc'
+# GFS_DATA = '../data/buoys/GFS_selectionPointNearest_20190925_20200701.nc'
+# GWES_DATA = '../data/buoys/GWES_selectionPointNearest_20190925_20200701.nc'
+# WW3_DATA = '../data/buoys/WW3_selectionPointNearest_20190925_20200701.nc'
 
 # average
-GFS_DATA = 'data/buoys/GFS_selectionPointAver_20190925_20200701.nc'
-GWES_DATA = 'data/buoys/GWES_selectionPointAver_20190925_20200701.nc'
-WW3_DATA = 'data/buoys/WW3_selectionPointAver_20190925_20200701.nc'
+GFS_DATA = '../data/buoys/GFS_selectionPointAver_20190925_20200701.nc'
+GWES_DATA = '../data/buoys/GWES_selectionPointAver_20190925_20200701.nc'
+WW3_DATA = '../data/buoys/WW3_selectionPointAver_20190925_20200701.nc'
 
-OBSERVED_DATA = 'data/buoys/NDBC_selection_deepWaters_20190925_20200701.nc'
+OBSERVED_DATA = '../data/buoys/NDBC_selection_deepWaters_20190925_20200701.nc'
 
 gfs_data = xarray.open_dataset(GFS_DATA)
 gwes_data = xarray.open_dataset(GWES_DATA)

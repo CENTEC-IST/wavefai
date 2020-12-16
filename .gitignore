@@ -1,5 +1,5 @@
 # VIRTUALENV
-wavefai_env/*
+dash_plots/dash_venv/*
 random_forest/rf/*
 
 # IN/OUT FILES
@@ -9,7 +9,12 @@ random_forest/rf/*
 
 **/__pycache__
 
+# Data dirs
 real_output/*
 output/*
 data/*
+
+# Tokens
+mapbox_token
+
 
