@@ -80,7 +80,10 @@ app.layout = html.Div([
 		)
 	], style={'width':'24%', 'display':'inline-block'}),
 
-	dcc.Graph(id='map'),
+	html.Div(children=[
+		dcc.Graph(id='map', style={'width':'32%', 'display':'inline-block'}),
+		dcc.Graph(id='timeseries', style={'width':'32%', 'display':'inline-block'}),
+	]),
 
 	html.Div(id='display_forecast_time'),
 
@@ -109,6 +112,8 @@ app.layout = html.Div([
 
 ], style={'font-family':FONT})
 
+# =========================
+# Main plot update callback
 
 @app.callback(
 		Output('map', 'figure'),
@@ -127,7 +132,6 @@ def update_graph(type, date, file, var, forecast_time):
 		hoverinfo = 'skip'))
 
 	if os.path.isfile(f"{DATA_PATH}/{type}/{date}/{file}"):
-		# TODO create a file cache to avoid this
 		data = get_dataset(f"{DATA_PATH}/{type}/{date}/{file}")
 		if var:
 			fig.add_trace(go.Contour(
@@ -135,10 +139,37 @@ def update_graph(type, date, file, var, forecast_time):
 				y = data.latitude.data,
 				z = data[var][forecast_time].data))
 
+	fig.update_xaxes(autorange=False, range=[-110, 40])
+	fig.update_yaxes()
+
+	fig.update_layout(title=f'Map {var}', height=800, plot_bgcolor= 'rgba(0, 0, 0, 0)', paper_bgcolor= 'rgba(0, 0, 0, 0)')
+
+	return fig
+
+@app.callback(
+		Output('timeseries', 'figure'),
+		[Input('type', 'value'),
+		Input('date', 'value'),
+		Input('file', 'value'),
+		Input('map', 'clickData')])
+def update_graph(type, date, file, click):
+	fig = go.Figure()
+
+	cx = click['points'][0]['x']
+	cy = click['points'][0]['y']
+
+	if os.path.isfile(f"{DATA_PATH}/{type}/{date}/{file}"):
+		data = get_dataset(f"{DATA_PATH}/{type}/{date}/{file}")
+		for v in list(data.data_vars):
+			fig.add_trace(go.Scatter(
+				x = [str(t) for t in data[v].time.data],
+				y = data[v].sel({'latitude':cy, 'longitude':cx}),
+				mode = 'lines', name = v))
+
 	fig.update_xaxes()
 	fig.update_yaxes()
 
-	fig.update_layout(title='SOME TITLE', width=1500, height=750, uirevision=True)
+	fig.update_layout(title='Time Series', uirevision=True)
 
 	return fig
 
@@ -149,13 +180,13 @@ def update_graph(type, date, file, var, forecast_time):
 		Output('date', 'options'),
 		[Input('type', 'value')])
 def update_available_dates(type):
-	return [{'label':d, 'value':d} for d in [x.split('/')[-1] for x in glob.glob(DATA_PATH+type+'/*')]]
+	return [{'label':d, 'value':d} for d in sorted([x.split('/')[-1] for x in glob.glob(DATA_PATH+type+'/*')])]
 
 @app.callback(
 		Output('file', 'options'),
 		[Input('type', 'value'),
 		Input('date', 'value')])
-def update_available_variables(type, date):
+def update_available_files(type, date):
 	return [{'label':d, 'value':d} for d in [x.split('/')[-1] for x in glob.glob(f"{DATA_PATH}/{type}/{date}/*")]]
 
 @app.callback(
