@@ -18,8 +18,6 @@ FONT = 'Courier New'
 #	   READING DATA
 # ========================
 
-OPEN_FILES = {}
-
 DATA_PATH='../../downcast/data/'
 
 TYPES = sorted([x.split('/')[-1] for x in glob.glob(DATA_PATH+'*')])
@@ -30,6 +28,18 @@ yy = []
 for p in cfeature.COASTLINE.geometries():
 	xx.extend([x[0] for x in p.coords] + [np.nan])
 	yy.extend([x[1] for x in p.coords] + [np.nan])
+
+# =====================
+# Other
+
+# keep a dictionary of open files
+_CACHED_FILES = {}
+def get_dataset(path):
+	'''Use this function to get a new dataset'''
+	if path in _CACHED_FILES:
+		return _CACHED_FILES[path]
+	_CACHED_FILES[path] = xarray.open_dataset(path)
+	return _CACHED_FILES[path]
 
 # ========================
 #	  DASH APP SETUP
@@ -118,7 +128,7 @@ def update_graph(type, date, file, var, forecast_time):
 
 	if os.path.isfile(f"{DATA_PATH}/{type}/{date}/{file}"):
 		# TODO create a file cache to avoid this
-		data = xarray.open_dataset(f"{DATA_PATH}/{type}/{date}/{file}")
+		data = get_dataset(f"{DATA_PATH}/{type}/{date}/{file}")
 		if var:
 			fig.add_trace(go.Contour(
 				x = data.longitude.data,
@@ -155,7 +165,7 @@ def update_available_variables(type, date):
 		Input('file', 'value')])
 def update_available_variables(type, date, file):
 	if os.path.isfile(f"{DATA_PATH}/{type}/{date}/{file}"):
-		return [{'label':d, 'value':d} for d in list(xarray.open_dataset(f"{DATA_PATH}/{type}/{date}/{file}").data_vars)]
+		return [{'label':d, 'value':d} for d in list(get_dataset(f"{DATA_PATH}/{type}/{date}/{file}").data_vars)]
 	else:
 		return []
 
@@ -168,7 +178,7 @@ def update_available_variables(type, date, file):
 		Input('file', 'value')])
 def update_forecast_slider_size(type, date, file):
 	if os.path.isfile(f"{DATA_PATH}/{type}/{date}/{file}"):
-		return xarray.open_dataset(f"{DATA_PATH}/{type}/{date}/{file}").time.size -1
+		return get_dataset(f"{DATA_PATH}/{type}/{date}/{file}").time.size -1
 	return 0
 
 @app.callback(
@@ -178,7 +188,7 @@ def update_forecast_slider_size(type, date, file):
 		Input('file', 'value')])
 def update_forecast_slider_size(type, date, file):
 	if os.path.isfile(f"{DATA_PATH}/{type}/{date}/{file}"):
-		f = xarray.open_dataset(f"{DATA_PATH}/{type}/{date}/{file}")
+		f = get_dataset(f"{DATA_PATH}/{type}/{date}/{file}")
 		return {i: str(i) for i,x in enumerate(f.time)}
 	return {}
 
@@ -190,7 +200,7 @@ def update_forecast_slider_size(type, date, file):
 		Input('forecast_time_slider', 'value')])
 def update_forecast_time_display(type, date, file, forecast_time):
 	if os.path.isfile(f"{DATA_PATH}/{type}/{date}/{file}"):
-		f = xarray.open_dataset(f"{DATA_PATH}/{type}/{date}/{file}")
+		f = get_dataset(f"{DATA_PATH}/{type}/{date}/{file}")
 		return 'Forecast Time: ' + str(f.time[forecast_time].data)
 	return 'Forecast Time: '
 

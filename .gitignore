@@ -1,5 +1,5 @@
 # VIRTUALENV
-dash_plots/testing-env/*
+dash_plots/dash_conda/*
 random_forest/rf/*
 
 # IN/OUT FILES
