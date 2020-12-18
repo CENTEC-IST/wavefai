@@ -1,3 +1,5 @@
+# vi: foldmethod=marker
+
 import dash
 import numpy as np
 import dash_core_components as dcc
@@ -54,77 +56,78 @@ def str_to_dt(string):
 #	  DASH APP SETUP
 # ========================
 
-app = dash.Dash(__name__, title='Forecast Data Viewer',
-		external_stylesheets=["https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"],
-		external_scripts=["https://code.jquery.com/jquery-3.2.1.slim.min.js",
-			"https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js",
-			"https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"])
+app = dash.Dash(__name__, meta_tags=[{"name": "viewport", "content": "width=device-width"}])
+
+# APP LAYOUT DEFINITION
 
 app.layout = html.Div([
-	html.H2(children = 'Forecast Data Viewer', style={'text-align':'center'}),
+	html.Div([ # HEADER {{{
+			html.H2("Forecast Data Viewer", style={"margin-bottom":"0px"}),
+		],
+		id="header",
+		className="row flex-display",
+		style={"margin-bottom": "15px"},
+	), # HEADER }}}
 
-	html.Div([
-		html.Div(children='Type:'),
-		dcc.Dropdown(
-			id='type',
-			options=[{'label':t, 'value':t} for t in TYPES],
-			value=TYPES[0], placeholder='Select type...'
-		)
-	], style={'width':'24%', 'display':'inline-block'}),
-	html.Div([
-		html.Div(children='Date: '),
-		dcc.DatePickerSingle(
-			id='date',
-			display_format="D MMMM YYYY",
-			style={"border": "0px solid black"},
-		)
-	], style={'width':'24%', 'display':'inline-block'}),
-	html.Div([
-		html.Div(children='File: '),
-		dcc.Dropdown(
-			id='file',
-			placeholder='Select file...'
-		)
-	], style={'width':'24%', 'display':'inline-block'}),
-	html.Div([
-		html.Div(children='Variable: '),
-		dcc.Dropdown(
-			id='variable',
-			placeholder='Select variable...'
-		)
-	], style={'width':'24%', 'display':'inline-block'}),
+	html.Div([ # FILTER MENU {{{
+			html.Div([
+				html.P( "Type", className="control_label"),
+				dcc.Dropdown(
+					id='type',
+					options=[{'label':t, 'value':t} for t in TYPES],
+					value=TYPES[0], placeholder='Select type...',
+					className="dcc_control"
+				),
+			], style={'display':'inline-block', 'width':'40%', 'vertical-align':'middle'}),
+			html.Div([
+				html.P( "Date", className="control_label"),
+				dcc.DatePickerSingle(
+					id='date',
+					display_format="D MM YYYY",
+					style={"border": "0px solid black"},
+					className="dcc_control"
+				),
+			], style={'display':'inline-block', 'vertical-align':'middle'}),
+			html.P("File", className="control_label"),
+			dcc.Dropdown(
+				id='file',
+				placeholder='Select file...',
+				className="dcc_control"
+			),
+			html.P( "Variable", className="control_label"),
+			dcc.Dropdown(
+				id='variable',
+				placeholder='Select variable...',
+				className="dcc_control"
+			),
+			html.P(id='display_forecast_time', className="control_label"),
+			dcc.Slider(
+				id='forecast_time_slider',
+				min=0,
+				max=0, # this will be overwritten when the file is loaded
+				value=0, # this will be overwritten on button callback
+				step=1,
+				className="dcc_control"
+			)
+		],
+		id="filter_options",
+		className="pretty_container three columns", # defined in the .css file
+	), # FILTER MENU }}}
 
-	html.Div(children=[
-		dcc.Graph(id='map', style={'width':'32%', 'display':'inline-block'}),
-		dcc.Graph(id='timeseries', style={'width':'32%', 'display':'inline-block'}),
-	]),
+	html.Div([ # GRAPHS {{{
+			html.Div(
+				[dcc.Graph(id='map')],
+				className="pretty_container seven columns",
+			),
+			html.Div(
+				[dcc.Graph(id='timeseries')],
+				className="pretty_container seven columns",
+			),
+		],
+		className="row flex-display",
+	), # GRAPHS }}}
 
-	html.Div(id='display_forecast_time'),
-
-	html.Div([
-		html.Div(children='Days:', style={'display':'inline-block', 'vertical-align':'50%'}),
-		html.Div([dcc.Slider(
-			id='forecast_time_slider',
-			min=0,
-			max=0, # this will be overwritten when the file is loaded
-			value=0, # this will be overwritten on button callback
-			step=1
-			)], style={'width':'90%', 'display':'inline-block'})
-	]),
-
-	html.Div([
-		html.Div(children='Step:', style={'display':'inline-block', 'padding-right':'15px'}),
-		html.Button(
-			id='step-forecast-backward',
-			children='⮜',
-			style={'width':'40px', 'height':'25px', 'display':'inline-block', 'border-block-style':'solid', 'border-radius':'4px'}),
-		html.Button(
-			id='step-forecast-forward',
-			children='⮞',
-			style={'width':'40px', 'height':'25px', 'display':'inline-block', 'border-block-style':'solid', 'border-radius':'4px'})
-	])
-
-], style={'font-family':FONT})
+], id="mainContainer", style={'font-family':FONT,"display": "flex", "flex-direction": "column"})
 
 # =========================
 # Main plot update callback
@@ -274,20 +277,6 @@ def update_forecast_time_display(type, date, file, forecast_time):
 			f = get_dataset(f"{DATA_PATH}/{type}/{date}/{file}")
 			return 'Forecast Time: ' + str(f.time[forecast_time].data)
 	return 'Forecast Time: '
-
-@app.callback(
-		Output('forecast_time_slider', 'value'),
-		[Input('step-forecast-forward', 'n_clicks'),
-		Input('step-forecast-backward', 'n_clicks')],
-		[State('forecast_time_slider', 'value')])
-def step_forecast(forward_clicks, backward_clicks, val):
-	cid = [p['prop_id'] for p in dash.callback_context.triggered][0]
-	if 'step-forecast-forward' in cid:
-		return val + 1 if val + 1 < 100 else val # TODO replace 100 with maximum allowed forecast time
-	elif 'step-forecast-backward' in cid:
-		return val - 1 if val > 0 else val
-	else:
-		return 0
 
 if __name__ == '__main__':
 	app.run_server(host='0.0.0.0', port=8888, debug=True)
