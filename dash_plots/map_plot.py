@@ -4,6 +4,7 @@ import dash_core_components as dcc
 import dash_html_components as html
 from dash.dependencies import Input, Output, State
 import plotly.graph_objects as go
+from datetime import datetime
 import glob
 import os
 
@@ -41,14 +42,26 @@ def get_dataset(path):
 	_CACHED_FILES[path] = xarray.open_dataset(path)
 	return _CACHED_FILES[path]
 
+def str_to_dt(string):
+	if len(string) == 10:
+		return datetime.strptime(string, '%Y%m%d%H')
+	elif len(string) == 8:
+		return datetime.strptime(string, '%Y%m%d')
+	else:
+		raise ValueError(f"No way to process this date: {string}")
+
 # ========================
 #	  DASH APP SETUP
 # ========================
 
-app = dash.Dash(__name__)
+app = dash.Dash(__name__, title='Forecast Data Viewer',
+		external_stylesheets=["https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"],
+		external_scripts=["https://code.jquery.com/jquery-3.2.1.slim.min.js",
+			"https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js",
+			"https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"])
 
 app.layout = html.Div([
-	html.H2(children = 'Ensemble Comparison', style={'text-align':'center'}),
+	html.H2(children = 'Forecast Data Viewer', style={'text-align':'center'}),
 
 	html.Div([
 		html.Div(children='Type:'),
@@ -60,9 +73,10 @@ app.layout = html.Div([
 	], style={'width':'24%', 'display':'inline-block'}),
 	html.Div([
 		html.Div(children='Date: '),
-		dcc.Dropdown(
+		dcc.DatePickerSingle(
 			id='date',
-			placeholder='Select date...'
+			display_format="D MMMM YYYY",
+			style={"border": "0px solid black"},
 		)
 	], style={'width':'24%', 'display':'inline-block'}),
 	html.Div([
@@ -118,7 +132,7 @@ app.layout = html.Div([
 @app.callback(
 		Output('map', 'figure'),
 		[Input('type', 'value'),
-		Input('date', 'value'),
+		Input('date', 'date'),
 		Input('file', 'value'),
 		Input('variable', 'value'),
 		Input('forecast_time_slider', 'value')])
@@ -131,40 +145,50 @@ def update_graph(type, date, file, var, forecast_time):
 		line = go.scatter.Line(width = 1, color = '#000'),
 		hoverinfo = 'skip'))
 
-	if os.path.isfile(f"{DATA_PATH}/{type}/{date}/{file}"):
-		data = get_dataset(f"{DATA_PATH}/{type}/{date}/{file}")
-		if var:
-			fig.add_trace(go.Contour(
-				x = data.longitude.data,
-				y = data.latitude.data,
-				z = data[var][forecast_time].data))
+	if date:
+		date = date.replace('-','') + '00'
+
+		if os.path.isfile(f"{DATA_PATH}/{type}/{date}/{file}"):
+			data = get_dataset(f"{DATA_PATH}/{type}/{date}/{file}")
+			if var:
+				fig.add_trace(go.Contour(
+					x = data.longitude.data,
+					y = data.latitude.data,
+					z = data[var][forecast_time].data))
 
 	fig.update_xaxes(autorange=False, range=[-110, 40])
 	fig.update_yaxes()
 
-	fig.update_layout(title=f'Map {var}', height=800, plot_bgcolor= 'rgba(0, 0, 0, 0)', paper_bgcolor= 'rgba(0, 0, 0, 0)')
+	fig.update_layout(height=800, showlegend=False, autosize=True, margin=go.layout.Margin(l=0,r=0,t=0,b=0),
+			plot_bgcolor= 'rgba(0, 0, 0, 0)', paper_bgcolor= 'rgba(0, 0, 0, 0)')
 
 	return fig
 
 @app.callback(
 		Output('timeseries', 'figure'),
 		[Input('type', 'value'),
-		Input('date', 'value'),
+		Input('date', 'date'),
 		Input('file', 'value'),
 		Input('map', 'clickData')])
 def update_graph(type, date, file, click):
+
 	fig = go.Figure()
+
+	if not click: return fig
 
 	cx = click['points'][0]['x']
 	cy = click['points'][0]['y']
 
-	if os.path.isfile(f"{DATA_PATH}/{type}/{date}/{file}"):
-		data = get_dataset(f"{DATA_PATH}/{type}/{date}/{file}")
-		for v in list(data.data_vars):
-			fig.add_trace(go.Scatter(
-				x = [str(t) for t in data[v].time.data],
-				y = data[v].sel({'latitude':cy, 'longitude':cx}),
-				mode = 'lines', name = v))
+	if date:
+		date = date.replace('-','') + '00'
+
+		if os.path.isfile(f"{DATA_PATH}/{type}/{date}/{file}"):
+			data = get_dataset(f"{DATA_PATH}/{type}/{date}/{file}")
+			for v in list(data.data_vars):
+				fig.add_trace(go.Scatter(
+					x = [str(t) for t in data[v].time.data],
+					y = data[v].sel({'latitude':cy, 'longitude':cx}),
+					mode = 'lines', name = v))
 
 	fig.update_xaxes()
 	fig.update_yaxes()
@@ -177,62 +201,78 @@ def update_graph(type, date, file, click):
 # ========================
 
 @app.callback(
-		Output('date', 'options'),
+		Output('date', 'min_date_allowed'),
 		[Input('type', 'value')])
 def update_available_dates(type):
-	return [{'label':d, 'value':d} for d in sorted([x.split('/')[-1] for x in glob.glob(DATA_PATH+type+'/*')])]
+	return str_to_dt(sorted([x.split('/')[-1] for x in glob.glob(DATA_PATH+type+'/*')])[0])
+
+@app.callback(
+		Output('date', 'max_date_allowed'),
+		[Input('type', 'value')])
+def update_available_dates2(type):
+	return str_to_dt(sorted([x.split('/')[-1] for x in glob.glob(DATA_PATH+type+'/*')])[-1])
 
 @app.callback(
 		Output('file', 'options'),
 		[Input('type', 'value'),
-		Input('date', 'value')])
+		Input('date', 'date')])
 def update_available_files(type, date):
-	return [{'label':d, 'value':d} for d in [x.split('/')[-1] for x in glob.glob(f"{DATA_PATH}/{type}/{date}/*")]]
+	if date:
+		date = date.replace('-','') + '00'
+		return [{'label':d, 'value':d} for d in [x.split('/')[-1] for x in glob.glob(f"{DATA_PATH}/{type}/{date}/*")]]
+	return []
 
 @app.callback(
 		Output('variable', 'options'),
 		[Input('type', 'value'),
-		Input('date', 'value'),
+		Input('date', 'date'),
 		Input('file', 'value')])
 def update_available_variables(type, date, file):
-	if os.path.isfile(f"{DATA_PATH}/{type}/{date}/{file}"):
-		return [{'label':d, 'value':d} for d in list(get_dataset(f"{DATA_PATH}/{type}/{date}/{file}").data_vars)]
-	else:
-		return []
+	if date:
+		date = date.replace('-','') + '00'
+		if os.path.isfile(f"{DATA_PATH}/{type}/{date}/{file}"):
+			return [{'label':d, 'value':d} for d in list(get_dataset(f"{DATA_PATH}/{type}/{date}/{file}").data_vars)]
+	return []
 
 # ===========================
 
 @app.callback(
 		Output('forecast_time_slider', 'max'),
 		[Input('type', 'value'),
-		Input('date', 'value'),
+		Input('date', 'date'),
 		Input('file', 'value')])
 def update_forecast_slider_size(type, date, file):
-	if os.path.isfile(f"{DATA_PATH}/{type}/{date}/{file}"):
-		return get_dataset(f"{DATA_PATH}/{type}/{date}/{file}").time.size -1
+	if date:
+		date = date.replace('-','') + '00'
+		if os.path.isfile(f"{DATA_PATH}/{type}/{date}/{file}"):
+			return get_dataset(f"{DATA_PATH}/{type}/{date}/{file}").time.size -1
 	return 0
 
 @app.callback(
 		Output('forecast_time_slider', 'marks'),
 		[Input('type', 'value'),
-		Input('date', 'value'),
+		Input('date', 'date'),
 		Input('file', 'value')])
 def update_forecast_slider_size(type, date, file):
-	if os.path.isfile(f"{DATA_PATH}/{type}/{date}/{file}"):
-		f = get_dataset(f"{DATA_PATH}/{type}/{date}/{file}")
-		return {i: str(i) for i,x in enumerate(f.time)}
+	if date:
+		date = date.replace('-','') + '00'
+		if os.path.isfile(f"{DATA_PATH}/{type}/{date}/{file}"):
+			f = get_dataset(f"{DATA_PATH}/{type}/{date}/{file}")
+			return {i: str(i) for i,x in enumerate(f.time)}
 	return {}
 
 @app.callback(
 		Output('display_forecast_time', 'children'),
 		[Input('type', 'value'),
-		Input('date', 'value'),
+		Input('date', 'date'),
 		Input('file', 'value'),
 		Input('forecast_time_slider', 'value')])
 def update_forecast_time_display(type, date, file, forecast_time):
-	if os.path.isfile(f"{DATA_PATH}/{type}/{date}/{file}"):
-		f = get_dataset(f"{DATA_PATH}/{type}/{date}/{file}")
-		return 'Forecast Time: ' + str(f.time[forecast_time].data)
+	if date:
+		date = date.replace('-','') + '00'
+		if os.path.isfile(f"{DATA_PATH}/{type}/{date}/{file}"):
+			f = get_dataset(f"{DATA_PATH}/{type}/{date}/{file}")
+			return 'Forecast Time: ' + str(f.time[forecast_time].data)
 	return 'Forecast Time: '
 
 @app.callback(
