@@ -66,28 +66,24 @@ app.layout = html.Div([
 		],
 		id="header",
 		className="row flex-display",
-		style={"margin-bottom": "15px"},
 	), # HEADER }}}
-
-	html.Div([ # FILTER MENU {{{
-			html.Div([
-				html.P( "Type", className="control_label"),
-				dcc.Dropdown(
-					id='type',
-					options=[{'label':t, 'value':t} for t in TYPES],
-					value=TYPES[0], placeholder='Select type...',
-					className="dcc_control"
-				),
-			], style={'display':'inline-block', 'width':'40%', 'vertical-align':'middle'}),
-			html.Div([
-				html.P( "Date", className="control_label"),
-				dcc.DatePickerSingle(
-					id='date',
-					display_format="D MM YYYY",
-					style={"border": "0px solid black"},
-					className="dcc_control"
-				),
-			], style={'display':'inline-block', 'vertical-align':'middle'}),
+	html.Div([
+		html.Div([ # FILTER MENU {{{
+			html.P( "Type", className="control_label"),
+			dcc.Dropdown(
+				id='type',
+				options=[{'label':t, 'value':t} for t in TYPES],
+				value=TYPES[0], placeholder='Select type...',
+				className="dcc_control"
+			),
+			html.P( "Date", className="control_label"),
+			dcc.DatePickerSingle(
+				id='date',
+				display_format="D MMM YYYY",
+				style={"border": "0px solid black"},
+				placeholder="Select date...",
+				className="dcc_control"
+			),
 			html.P("File", className="control_label"),
 			dcc.Dropdown(
 				id='file',
@@ -111,23 +107,24 @@ app.layout = html.Div([
 			)
 		],
 		id="filter_options",
-		className="pretty_container three columns", # defined in the .css file
-	), # FILTER MENU }}}
-
-	html.Div([ # GRAPHS {{{
-			html.Div(
-				[dcc.Graph(id='map')],
-				className="pretty_container seven columns",
-			),
-			html.Div(
-				[dcc.Graph(id='timeseries')],
-				className="pretty_container seven columns",
-			),
-		],
-		className="row flex-display",
+		className="pretty_container two columns",
+		), # FILTER MENU }}}
+		html.Div(
+			[dcc.Graph(id='map')],
+			className="pretty_container five columns",
+		),
+	],
+	className="row flex-display",
 	), # GRAPHS }}}
-
-], id="mainContainer", style={'font-family':FONT,"display": "flex", "flex-direction": "column"})
+	html.Div([
+		html.Div(
+			[dcc.Graph(id='timeseries')],
+			className="pretty_container six columns",
+		),
+	],
+	className="row flex-display",
+	), # GRAPHS }}}
+], id="mainContainer", style={'font-family':FONT})
 
 # =========================
 # Main plot update callback
@@ -162,7 +159,8 @@ def update_graph(type, date, file, var, forecast_time):
 	fig.update_xaxes(autorange=False, range=[-110, 40])
 	fig.update_yaxes()
 
-	fig.update_layout(height=800, showlegend=False, autosize=True, margin=go.layout.Margin(l=0,r=0,t=0,b=0),
+	fig.update_layout(height=1000, showlegend=False,
+			margin=go.layout.Margin(l=0,r=0,t=0,b=0),
 			plot_bgcolor= 'rgba(0, 0, 0, 0)', paper_bgcolor= 'rgba(0, 0, 0, 0)')
 
 	return fig
@@ -196,7 +194,8 @@ def update_graph(type, date, file, click):
 	fig.update_xaxes()
 	fig.update_yaxes()
 
-	fig.update_layout(title='Time Series', uirevision=True)
+	fig.update_layout(title='Time Series', uirevision=True,
+			margin=go.layout.Margin(l=0,r=0,t=0,b=0))
 
 	return fig
 
@@ -261,7 +260,9 @@ def update_forecast_slider_size(type, date, file):
 		date = date.replace('-','') + '00'
 		if os.path.isfile(f"{DATA_PATH}/{type}/{date}/{file}"):
 			f = get_dataset(f"{DATA_PATH}/{type}/{date}/{file}")
-			return {i: str(i) for i,x in enumerate(f.time)}
+			# TODO finish this
+			return {i: str(f.time[i].dt.dayofyear.data) for i in range(len(f.time))}
+			# return {0: f.time[i].dt.dayofyear.data f.time[0].dt.dayofyear.data)}
 	return {}
 
 @app.callback(
