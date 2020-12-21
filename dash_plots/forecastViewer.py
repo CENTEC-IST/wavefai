@@ -32,9 +32,7 @@ for p in cfeature.COASTLINE.geometries():
 	xx.extend([x[0] for x in p.coords] + [np.nan])
 	yy.extend([x[1] for x in p.coords] + [np.nan])
 
-# =====================
-# Other
-
+# =============================================
 # keep a dictionary of open files
 _CACHED_FILES = {}
 def get_dataset(path):
@@ -43,6 +41,29 @@ def get_dataset(path):
 		return _CACHED_FILES[path]
 	_CACHED_FILES[path] = xarray.open_dataset(path)
 	return _CACHED_FILES[path]
+# =============================================
+
+# Use this functions to access the traces
+
+_LOADED_TRACES = {}
+def add_trace(path, variable, data):
+	if (path, variable) not in _LOADED_TRACES:
+		_LOADED_TRACES[(path, variable)] = data
+
+def get_trace(path, variable):
+	if (path, variable) in _LOADED_TRACES:
+		return _LOADED_TRACES[(path, variable)]
+	return None
+
+def del_trace(path, variable):
+	if (path, variable) in _LOADED_TRACES:
+		del(_LOADED_TRACES[(path, variable)])
+
+def clear_traces():
+	_LOADED_TRACES = {}
+
+# =============================================
+
 
 def str_to_dt(string):
 	if len(string) == 10:
@@ -57,7 +78,7 @@ def get_fc_actual_index(idx, fc_size):
 	return fc_size - 1 - idx
 
 # ========================
-#	  DASH APP SETUP
+#	  DASH LAYOUT SETUP
 # ========================
 
 app = dash.Dash(__name__, meta_tags=[{"name": "viewport", "content": "width=device-width"}])
@@ -65,14 +86,16 @@ app = dash.Dash(__name__, meta_tags=[{"name": "viewport", "content": "width=devi
 # APP LAYOUT DEFINITION
 
 app.layout = html.Div([
-	html.Div([ # HEADER {{{
+	# HEADER {{{
+	html.Div([
 			html.H2("Forecast Data Viewer", style={"margin-bottom":"0px"}),
 		],
 		id="header",
 		className="row flex-display",
 	), # HEADER }}}
-	html.Div([
-		html.Div([ # FILTER MENU {{{
+	html.Div([ # MAIN ROW
+		# FILTER MENU {{{
+		html.Div([
 			html.P( "Type", className="control_label"),
 			dcc.Dropdown(
 				id='type',
@@ -101,38 +124,40 @@ app.layout = html.Div([
 				className="dcc_control"
 			),
 			html.P(id='display_forecast_time', className="control_label"),
-			html.B(),
-			html.P("Saved Traces", className="control_label"),
-			dcc.RangeSlider(
-				id='testing',
-				min=0,
-				max=10,
-				value=[9],
-				step=1,
-				marks={i:str(i) for i in reversed(range(1,10))},
+			html.Hr(),
+			html.H5("Saved Traces", className="control_label", style={'margin-bottom':'7px'}),
+			# html.Button(
+			# 	'Save Trace',
+			# 	id='save_trace',
+			# 	n_clicks=0,
+			# 	style={'width':'-moz-available', 'margin-bottom':'7px'},
+			# ),
+			dcc.Dropdown(
+				id='traces',
+				placeholder='',
+				multi=True,
 				className="dcc_control"
 			),
 		],
 		id="filter_options",
-		className="pretty_container two columns",
+		className="pretty_container three columns",
 		), # FILTER MENU }}}
+		# MAP GRAPHS {{{
 		html.Div([
 			html.Div([
 				dcc.RangeSlider(
 					id='forecast_time_slider',
 					min=0,
-					max=0,
-					value=[0],
 					step=1,
 					vertical=True,
-					verticalHeight=1000,
-					# className="dcc_control"
+					verticalHeight=1000, # BAM, make it BIG BOY!!
 				),
 				dcc.Graph(id='map'),
 				], className="row flex-display"),
 			],
 			className="pretty_container five columns",
 		),
+		# }}}
 		html.Div(
 			[dcc.Graph(id='timeseries')],
 			className="pretty_container six columns",
@@ -140,14 +165,10 @@ app.layout = html.Div([
 	],
 	className="row flex-display",
 	),
-	html.Div([
-	],
-	className="row flex-display",
-	),
 ], id="mainContainer", style={'font-family':FONT})
 
 # =========================
-# Main plot update callback
+# MAIN PLOT UPDATE CALLBACK
 
 @app.callback(
 		Output('map', 'figure'),
@@ -185,8 +206,10 @@ def update_graph(type, date, file, var, forecast_time):
 
 	return fig
 
-@app.callback(
+@app.callback([
 		Output('timeseries', 'figure'),
+		Output('traces', 'options'),
+		Output('traces', 'values')]
 		[Input('type', 'value'),
 		Input('date', 'date'),
 		Input('file', 'value'),
@@ -256,6 +279,20 @@ def update_available_variables(type, date, file):
 			return [{'label':d, 'value':d} for d in list(get_dataset(f"{DATA_PATH}/{type}/{date}/{file}").data_vars)]
 	return []
 
+@app.callback(
+		Output('display_forecast_time', 'children'),
+		[Input('type', 'value'),
+		Input('date', 'date'),
+		Input('file', 'value'),
+		Input('forecast_time_slider', 'value')])
+def update_forecast_time_display(type, date, file, forecast_time):
+	if date:
+		date = date.replace('-','') + '00'
+		if os.path.isfile(f"{DATA_PATH}/{type}/{date}/{file}"):
+			f = get_dataset(f"{DATA_PATH}/{type}/{date}/{file}")
+			return 'Forecast Time: ' + str(f.time[get_fc_actual_index(forecast_time[0], f.time.size)].dt.strftime('%Y.%m.%d %Hh').data)
+	return 'Forecast Time: '
+
 # }}}
 
 # ===========================
@@ -281,23 +318,10 @@ def update_forecast_slider(type, date, file):
 
 	return 0, [0], {}
 
-@app.callback(
-		Output('display_forecast_time', 'children'),
-		[Input('type', 'value'),
-		Input('date', 'date'),
-		Input('file', 'value'),
-		Input('forecast_time_slider', 'value')])
-def update_forecast_time_display(type, date, file, forecast_time):
-	if date:
-		date = date.replace('-','') + '00'
-		if os.path.isfile(f"{DATA_PATH}/{type}/{date}/{file}"):
-			f = get_dataset(f"{DATA_PATH}/{type}/{date}/{file}")
-			return 'Forecast Time: ' + str(f.time[get_fc_actual_index(forecast_time[0], f.time.size)].dt.strftime('%Y.%m.%d %Hh').data)
-	return 'Forecast Time: '
 
 # }}}
 
-
+@app.callback
 
 if __name__ == '__main__':
 	app.run_server(host='0.0.0.0', port=8888, debug=True)
