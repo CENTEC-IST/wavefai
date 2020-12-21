@@ -113,17 +113,17 @@ app.layout = html.Div([
 			[dcc.Graph(id='map')],
 			className="pretty_container five columns",
 		),
-	],
-	className="row flex-display",
-	), # GRAPHS }}}
-	html.Div([
 		html.Div(
 			[dcc.Graph(id='timeseries')],
 			className="pretty_container six columns",
 		),
 	],
 	className="row flex-display",
-	), # GRAPHS }}}
+	),
+	html.Div([
+	],
+	className="row flex-display",
+	),
 ], id="mainContainer", style={'font-family':FONT})
 
 # =========================
@@ -156,10 +156,10 @@ def update_graph(type, date, file, var, forecast_time):
 					y = data.latitude.data,
 					z = data[var][forecast_time].data))
 
-	fig.update_xaxes(autorange=False, range=[-110, 40])
-	fig.update_yaxes()
+	fig.update_xaxes(range=[-105, 35])
+	fig.update_yaxes(range=[-82, 90])
 
-	fig.update_layout(height=1000, showlegend=False,
+	fig.update_layout(height=1000, showlegend=False, uirevision=True,
 			margin=go.layout.Margin(l=0,r=0,t=0,b=0),
 			plot_bgcolor= 'rgba(0, 0, 0, 0)', paper_bgcolor= 'rgba(0, 0, 0, 0)')
 
