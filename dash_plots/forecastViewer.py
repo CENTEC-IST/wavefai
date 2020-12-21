@@ -52,6 +52,10 @@ def str_to_dt(string):
 	else:
 		raise ValueError(f"No way to process this date: {string}")
 
+def get_fc_actual_index(idx, fc_size):
+	'''Returns the correct index from the slider since it is reversed'''
+	return fc_size - 1 - idx
+
 # ========================
 #	  DASH APP SETUP
 # ========================
@@ -97,30 +101,36 @@ app.layout = html.Div([
 				className="dcc_control"
 			),
 			html.P(id='display_forecast_time', className="control_label"),
-			dcc.Slider(
-				id='forecast_time_slider',
-				min=0,
-				max=0, # this will be overwritten when the file is loaded
-				value=0, # this will be overwritten on button callback
-				step=1,
-				className="dcc_control"
-			),
 			html.B(),
 			html.P("Saved Traces", className="control_label"),
-			dcc.Slider(
+			dcc.RangeSlider(
 				id='testing',
 				min=0,
-				max=10, # this will be overwritten when the file is loaded
-				value=0, # this will be overwritten on button callback
+				max=10,
+				value=[9],
 				step=1,
+				marks={i:str(i) for i in reversed(range(1,10))},
 				className="dcc_control"
 			),
 		],
 		id="filter_options",
 		className="pretty_container two columns",
 		), # FILTER MENU }}}
-		html.Div(
-			[dcc.Graph(id='map')],
+		html.Div([
+			html.Div([
+				dcc.RangeSlider(
+					id='forecast_time_slider',
+					min=0,
+					max=0,
+					value=[0],
+					step=1,
+					vertical=True,
+					verticalHeight=1000,
+					# className="dcc_control"
+				),
+				dcc.Graph(id='map'),
+				], className="row flex-display"),
+			],
 			className="pretty_container five columns",
 		),
 		html.Div(
@@ -164,7 +174,7 @@ def update_graph(type, date, file, var, forecast_time):
 				fig.add_trace(go.Contour(
 					x = data.longitude.data,
 					y = data.latitude.data,
-					z = data[var][forecast_time].data))
+					z = data[var][get_fc_actual_index(forecast_time[0], data.time.size)].data))
 
 	fig.update_xaxes(range=[-105, 35])
 	fig.update_yaxes(range=[-82, 90])
@@ -251,32 +261,25 @@ def update_available_variables(type, date, file):
 # ===========================
 # FORECAST TIME CONTROLLER {{{
 
-@app.callback(
+@app.callback([
 		Output('forecast_time_slider', 'max'),
-		[Input('type', 'value'),
+		Output('forecast_time_slider', 'value'),
+		Output('forecast_time_slider', 'marks')],
+		[ Input('type', 'value'),
 		Input('date', 'date'),
 		Input('file', 'value')])
-def update_forecast_slider_size(type, date, file):
-	if date:
-		date = date.replace('-','') + '00'
-		if os.path.isfile(f"{DATA_PATH}/{type}/{date}/{file}"):
-			return get_dataset(f"{DATA_PATH}/{type}/{date}/{file}").time.size -1
-	return 0
-
-@app.callback(
-		Output('forecast_time_slider', 'marks'),
-		[Input('type', 'value'),
-		Input('date', 'date'),
-		Input('file', 'value')])
-def update_forecast_slider_marks(type, date, file):
+def update_forecast_slider(type, date, file):
 	if date:
 		date = date.replace('-','') + '00'
 		if os.path.isfile(f"{DATA_PATH}/{type}/{date}/{file}"):
 			f = get_dataset(f"{DATA_PATH}/{type}/{date}/{file}")
-			# TODO finish this
-			return {i: str(f.time[i].dt.dayofyear.data) for i in range(len(f.time)) if f.time[i].dt.hour==0}
-			# return {0: f.time[i].dt.dayofyear.data f.time[0].dt.dayofyear.data)}
-	return {}
+			# TODO fix this messy shit
+			# marks = {i: str(f.time[i].dt.dayofyear.data) for i in reversed(range(len(f.time))) if f.time[i].dt.hour==0}
+			marks = {i: str(f.time[get_fc_actual_index(i, f.time.size)].dt.dayofyear.data) for i in reversed(range(len(f.time))) if f.time[get_fc_actual_index(i, f.time.size)].dt.hour==0}
+			fc_time_size = f.time.size-1
+			return fc_time_size, [fc_time_size], marks
+
+	return 0, [0], {}
 
 @app.callback(
 		Output('display_forecast_time', 'children'),
@@ -289,7 +292,7 @@ def update_forecast_time_display(type, date, file, forecast_time):
 		date = date.replace('-','') + '00'
 		if os.path.isfile(f"{DATA_PATH}/{type}/{date}/{file}"):
 			f = get_dataset(f"{DATA_PATH}/{type}/{date}/{file}")
-			return 'Forecast Time: ' + str(f.time[forecast_time].dt.strftime('%Y.%m.%d %Hh').data)
+			return 'Forecast Time: ' + str(f.time[get_fc_actual_index(forecast_time[0], f.time.size)].dt.strftime('%Y.%m.%d %Hh').data)
 	return 'Forecast Time: '
 
 # }}}
