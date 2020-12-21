@@ -80,9 +80,9 @@ app.layout = html.Div([
 			dcc.DatePickerSingle(
 				id='date',
 				display_format="D MMM YYYY",
-				style={"border": "0px solid black"},
+				style={'display':'block', "border": "0px solid black"},
 				placeholder="Select date...",
-				className="dcc_control"
+				className="dcc_control",
 			),
 			html.P("File", className="control_label"),
 			dcc.Dropdown(
@@ -104,7 +104,17 @@ app.layout = html.Div([
 				value=0, # this will be overwritten on button callback
 				step=1,
 				className="dcc_control"
-			)
+			),
+			html.B(),
+			html.P("Saved Traces", className="control_label"),
+			dcc.Slider(
+				id='testing',
+				min=0,
+				max=10, # this will be overwritten when the file is loaded
+				value=0, # this will be overwritten on button callback
+				step=1,
+				className="dcc_control"
+			),
 		],
 		id="filter_options",
 		className="pretty_container two columns",
@@ -170,8 +180,9 @@ def update_graph(type, date, file, var, forecast_time):
 		[Input('type', 'value'),
 		Input('date', 'date'),
 		Input('file', 'value'),
+		Input('variable', 'value'),
 		Input('map', 'clickData')])
-def update_graph(type, date, file, click):
+def update_graph(type, date, file, var, click):
 
 	fig = go.Figure()
 
@@ -185,22 +196,21 @@ def update_graph(type, date, file, click):
 
 		if os.path.isfile(f"{DATA_PATH}/{type}/{date}/{file}"):
 			data = get_dataset(f"{DATA_PATH}/{type}/{date}/{file}")
-			for v in list(data.data_vars):
-				fig.add_trace(go.Scatter(
-					x = [str(t) for t in data[v].time.data],
-					y = data[v].sel({'latitude':cy, 'longitude':cx}),
-					mode = 'lines', name = v))
+			fig.add_trace(go.Scatter(
+				x = [str(t) for t in data[var].time.data],
+				y = data[var].sel({'latitude':cy, 'longitude':cx}),
+				mode = 'lines', name = var))
 
-	fig.update_xaxes()
-	fig.update_yaxes()
+	fig.update_xaxes(title='Forecast Time')
+	fig.update_yaxes(title=f'{var} ({data[var].units})')
 
 	fig.update_layout(title='Time Series', uirevision=True,
 			margin=go.layout.Margin(l=0,r=0,t=0,b=0))
 
 	return fig
 
-# TOP ROW DROPDOWN UPDATES
 # ========================
+# DATASET SELECTION CONTROLLERS {{{
 
 @app.callback(
 		Output('date', 'min_date_allowed'),
@@ -236,7 +246,10 @@ def update_available_variables(type, date, file):
 			return [{'label':d, 'value':d} for d in list(get_dataset(f"{DATA_PATH}/{type}/{date}/{file}").data_vars)]
 	return []
 
+# }}}
+
 # ===========================
+# FORECAST TIME CONTROLLER {{{
 
 @app.callback(
 		Output('forecast_time_slider', 'max'),
@@ -255,13 +268,13 @@ def update_forecast_slider_size(type, date, file):
 		[Input('type', 'value'),
 		Input('date', 'date'),
 		Input('file', 'value')])
-def update_forecast_slider_size(type, date, file):
+def update_forecast_slider_marks(type, date, file):
 	if date:
 		date = date.replace('-','') + '00'
 		if os.path.isfile(f"{DATA_PATH}/{type}/{date}/{file}"):
 			f = get_dataset(f"{DATA_PATH}/{type}/{date}/{file}")
 			# TODO finish this
-			return {i: str(f.time[i].dt.dayofyear.data) for i in range(len(f.time))}
+			return {i: str(f.time[i].dt.dayofyear.data) for i in range(len(f.time)) if f.time[i].dt.hour==0}
 			# return {0: f.time[i].dt.dayofyear.data f.time[0].dt.dayofyear.data)}
 	return {}
 
@@ -276,8 +289,13 @@ def update_forecast_time_display(type, date, file, forecast_time):
 		date = date.replace('-','') + '00'
 		if os.path.isfile(f"{DATA_PATH}/{type}/{date}/{file}"):
 			f = get_dataset(f"{DATA_PATH}/{type}/{date}/{file}")
-			return 'Forecast Time: ' + str(f.time[forecast_time].data)
+			return 'Forecast Time: ' + str(f.time[forecast_time].dt.strftime('%Y.%m.%d %Hh').data)
 	return 'Forecast Time: '
+
+# }}}
+
+
 
 if __name__ == '__main__':
 	app.run_server(host='0.0.0.0', port=8888, debug=True)
+
