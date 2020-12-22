@@ -43,28 +43,6 @@ def get_dataset(path):
 	return _CACHED_FILES[path]
 # =============================================
 
-# Use this functions to access the traces
-
-_LOADED_TRACES = {}
-def add_trace(path, variable, data):
-	if (path, variable) not in _LOADED_TRACES:
-		_LOADED_TRACES[(path, variable)] = data
-
-def get_trace(path, variable):
-	if (path, variable) in _LOADED_TRACES:
-		return _LOADED_TRACES[(path, variable)]
-	return None
-
-def del_trace(path, variable):
-	if (path, variable) in _LOADED_TRACES:
-		del(_LOADED_TRACES[(path, variable)])
-
-def clear_traces():
-	_LOADED_TRACES = {}
-
-# =============================================
-
-
 def str_to_dt(string):
 	if len(string) == 10:
 		return datetime.strptime(string, '%Y%m%d%H')
@@ -101,6 +79,7 @@ app.layout = html.Div([
 				id='type',
 				options=[{'label':t, 'value':t} for t in TYPES],
 				value=TYPES[0], placeholder='Select type...',
+				clearable=False,
 				className="dcc_control"
 			),
 			html.P( "Date", className="control_label"),
@@ -115,28 +94,23 @@ app.layout = html.Div([
 			dcc.Dropdown(
 				id='file',
 				placeholder='Select file...',
+				clearable=False,
 				className="dcc_control"
 			),
 			html.P( "Variable", className="control_label"),
 			dcc.Dropdown(
 				id='variable',
 				placeholder='Select variable...',
+				clearable=False,
 				className="dcc_control"
 			),
 			html.P(id='display_forecast_time', className="control_label"),
 			html.Hr(),
-			html.H5("Saved Traces", className="control_label", style={'margin-bottom':'7px'}),
-			# html.Button(
-			# 	'Save Trace',
-			# 	id='save_trace',
-			# 	n_clicks=0,
-			# 	style={'width':'-moz-available', 'margin-bottom':'7px'},
-			# ),
-			dcc.Dropdown(
-				id='traces',
-				placeholder='',
-				multi=True,
-				className="dcc_control"
+			html.Button(
+				'Clear Traces',
+				id='clear_trace',
+				n_clicks=0,
+				style={'width':'-moz-available', 'margin-bottom':'7px'},
 			),
 		],
 		id="filter_options",
@@ -206,20 +180,27 @@ def update_graph(type, date, file, var, forecast_time):
 
 	return fig
 
-@app.callback([
+@app.callback(
 		Output('timeseries', 'figure'),
-		Output('traces', 'options'),
-		Output('traces', 'values')]
 		[Input('type', 'value'),
 		Input('date', 'date'),
 		Input('file', 'value'),
 		Input('variable', 'value'),
-		Input('map', 'clickData')])
-def update_graph(type, date, file, var, click):
+		Input('map', 'clickData'),
+		Input('clear_trace', 'n_clicks')],
+		State('timeseries', 'figure'))
+def append_timeseries(type, date, file, var, click, clear_trace_clicks, figure):
 
-	fig = go.Figure()
+	if not figure:
+		figure = go.Figure()
 
-	if not click: return fig
+	figure = go.Figure(figure)
+
+	if not click: # map click
+		return figure
+	# clear_trace button click
+	elif 'clear_trace' in [p['prop_id'] for p in dash.callback_context.triggered][0]:
+		return go.Figure()
 
 	cx = click['points'][0]['x']
 	cy = click['points'][0]['y']
@@ -229,18 +210,18 @@ def update_graph(type, date, file, var, click):
 
 		if os.path.isfile(f"{DATA_PATH}/{type}/{date}/{file}"):
 			data = get_dataset(f"{DATA_PATH}/{type}/{date}/{file}")
-			fig.add_trace(go.Scatter(
+			figure.add_trace(go.Scatter(
 				x = [str(t) for t in data[var].time.data],
 				y = data[var].sel({'latitude':cy, 'longitude':cx}),
 				mode = 'lines', name = var))
 
-	fig.update_xaxes(title='Forecast Time')
-	fig.update_yaxes(title=f'{var} ({data[var].units})')
+			figure.update_xaxes(title='Forecast Time')
+			figure.update_yaxes(title=f'{var} ({data[var].units})')
 
-	fig.update_layout(title='Time Series', uirevision=True,
+	figure.update_layout(title='Time Series', uirevision=True,
 			margin=go.layout.Margin(l=0,r=0,t=0,b=0))
 
-	return fig
+	return figure
 
 # ========================
 # DATASET SELECTION CONTROLLERS {{{
@@ -320,8 +301,6 @@ def update_forecast_slider(type, date, file):
 
 
 # }}}
-
-@app.callback
 
 if __name__ == '__main__':
 	app.run_server(host='0.0.0.0', port=8888, debug=True)
