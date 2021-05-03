@@ -17,8 +17,8 @@ from talos.model.normalizers import lr_normalizer
 from talos.model.early_stopper import early_stopper
 import tensorflow as tf
 
-config = tf.compat.v1.ConfigProto(intra_op_parallelism_threads=5, 
-                        inter_op_parallelism_threads=5,allow_soft_placement=True)
+config = tf.compat.v1.ConfigProto(intra_op_parallelism_threads=10, 
+                        inter_op_parallelism_threads=10,allow_soft_placement=True)
 
 session = tf.compat.v1.Session(config=config)
 tf.compat.v1.keras.backend.set_session(session)
@@ -97,8 +97,7 @@ def generate_dataset(input_scaler, output_scaler,X,y):
     '''
     scaler can be MinMaxScaler(), StandardScaler() or None
     X - DataFrame with inputs
-    '''
-    
+    '''    
     # split into train and test
     test_size=int(0.2*len(X)) #split can't be shuffled because of wt
     X_train=X[test_size:]
@@ -109,8 +108,8 @@ def generate_dataset(input_scaler, output_scaler,X,y):
     # scale inputs
     if input_scaler is not None:
         input_scaler.fit(X_train)
-        X_train = pd.DataFrame(input_scaler.transform(X_train),index=X_train.index.get_level_values('time'),columns=X.columns)
-        X_test = pd.DataFrame(input_scaler.transform(X_test),index=X_test.index.get_level_values('time'),columns=X.columns)
+        X_train = input_scaler.transform(X_train)
+        X_test = input_scaler.transform(X_test)
         
     if output_scaler is not None:
         output_scaler.fit(y_train)
@@ -119,7 +118,7 @@ def generate_dataset(input_scaler, output_scaler,X,y):
     return X_train, X_test, y_train, y_test
 
 
-#---data-------------------------------
+#---data-------------------------------------------------------------
 buoysdata=pd.read_csv('buoysdata1516.txt', sep=" ", header=0,index_col=[0,1])
 reanalysis=pd.read_csv('era5_1516.txt', sep=" ", header=0,index_col=[0,1,2])
 reanalysis.rename(index={41004:41044}, level='buoy', inplace=True) #a mistake downloading
@@ -130,31 +129,39 @@ B=directionComp(buoysdata.iloc[buoysdata.index.get_level_values('buoy')==buoysli
 R=directionComp(reanalysis.iloc[reanalysis.index.get_level_values('buoy')==buoyslist[k]],
                 ['mwd','mwd1','mwd2','mwd3','mdww','mdts'],[None,None,None,None,None,None]).sort_values(by='time')
 #---julian days-----------------
-tt=[datetime.datetime.strptime(x,'%Y-%m-%d %H:%M:%S').timetuple().tm_yday for x in R.index.get_level_values('time')]
-tt = np.array(tt, dtype=np.float32)
-tc=np.cos(tt*np.pi*2/(np.max(tt)-np.min(tt)))
-ts=np.sin(tt*np.pi*2/(np.max(tt)-np.min(tt)))
-R['coscycle']=tc
-R['sincycle']=ts
-#------------------------------
-y=target(R,B)
-
-index=np.unique(np.where(pd.isnull(y))[0]) 
-y=y.drop(index) 
+aux=[0]*len(R)
+year=np.unique([datetime.datetime.strptime(x, '%Y-%m-%d %H:%M:%S').year for x in R.index.get_level_values('time')])
+for i in range(len(R)):
+    for j in year:
+        if (datetime.datetime.strptime(R.index.get_level_values('time')[i],'%Y-%m-%d %H:%M:%S').year == j):   
+            aux[i]=datetime.datetime.strptime(R.index.get_level_values('time')[i],'%Y-%m-%d %H:%M:%S')-datetime.datetime(j,1,1,0,0)
+aux=np.array([x.total_seconds() for x in aux],dtype=np.float32)
+R['cost']=np.cos(aux*np.pi*2/(np.max(aux)-np.min(aux)))
+R['sint']=np.sin(aux*np.pi*2/(np.max(aux)-np.min(aux)))
+#---target-----------------------
+Y=target(R,B)
+index=np.unique(np.where(pd.isnull(Y))[0]) 
+Y=Y.drop(index) 
 X=R.drop(R.index[index])
 
-X_train, X_test, y_train, y_test = generate_dataset(StandardScaler(),MinMaxScaler(),X,y)
+y=Y.copy()
+window=3
+y.iloc[:,0]=y.iloc[:,0].rolling(window, min_periods=1, center=False, win_type=None, on=None, axis=0, closed=None).mean()
+y.iloc[:,1]=y.iloc[:,1].rolling(window, min_periods=1, center=False, win_type=None, on=None, axis=0, closed=None).mean()
 
+X_train, X_test, y_train, y_test = generate_dataset(StandardScaler(),MinMaxScaler(),X,y)
+#---train split into train/validation--
 X_trainv, X_testv,y_trainv, y_testv = train_test_split(X_train,y_train,test_size=0.2,random_state=1)
 
 pca=PCA(.95) #95% of variance explained
 pca.fit(X_trainv)
 X_trainv=pca.transform(X_trainv)
 X_testv=pca.transform(X_testv)
-#-------------------------------------
+#-----------------------------------------------------------------------------------
+#---optimization---
 
 # (1) Define dict of parameters to try
-p = {'first_neuron':[5,15,50,100,200,500],#list(np.arange(2,500,5))
+p = {'first_neuron':[5,15,50,100,200,500],
      'activation':['relu','sigmoid','tanh'],
      'hidden_layers':[0,1,2],
      'shapes': ['brick', 'funnel'],
@@ -188,8 +195,7 @@ def nnet_model(X_train, y_train, X_val, y_val, params):
     if params['optimizer']=="SGD":
         opt=keras.optimizers.SGD(lr=params['lr'], momentum=params['momentum'], nesterov=True)
     
-    model.compile(loss='mean_squared_error',optimizer=opt,
-                 metrics=['mse'])
+    model.compile(loss='mean_squared_error',optimizer=opt)
     
     history = model.fit(X_train, y_train, 
                         validation_data=(X_val, y_val),
@@ -210,7 +216,7 @@ t = talos.Scan(x=X_trainv,
             y_val=y_testv,
             model=nnet_model,
             params=p,
-            #fraction_limit=0.50,
+            fraction_limit=0.50,
             experiment_name='nnet_opt')
 s=(time.time() - start_time)
 print("--- %s seconds ---" % s)
